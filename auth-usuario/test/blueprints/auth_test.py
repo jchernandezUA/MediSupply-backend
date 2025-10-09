@@ -1,181 +1,123 @@
 import pytest
 from flask import Flask
-from flask_jwt_extended import JWTManager
-from src.blueprints.auth import auth_bp  # Ajusta el import según estructura
+from flask_jwt_extended import JWTManager, create_access_token
+from unittest.mock import patch
 
-# --- Mocks para User y DB ---
-
-class MockUser:
-    def __init__(self, email, password, nombre, apellido, is_active=True, id=1):
-        self.email = email
-        self.password = password
-        self.nombre = nombre
-        self.apellido = apellido
-        self.is_active = is_active
-        self.id = id
-
-    def save(self):
-        pass
-
-    def to_dict(self):
-        return dict(
-            id=self.id,
-            email=self.email,
-            nombre=self.nombre,
-            apellido=self.apellido,
-            is_active=self.is_active
-        )
-
-    def check_password(self, pwd):
-        return self.password == pwd
+from src.blueprints.auth import auth_bp
+from src.services.auth_service import AuthServiceError
 
 @pytest.fixture
-def client(monkeypatch):
+def app():
+    """Crea una instancia de la aplicación Flask para las pruebas."""
     app = Flask(__name__)
-    app.config['JWT_SECRET_KEY'] = 'test'
-    app.config['TESTING'] = True
+    app.config['JWT_SECRET_KEY'] = 'test-secret'
     JWTManager(app)
-    app.register_blueprint(auth_bp)
+    app.register_blueprint(auth_bp, url_prefix='/auth')
+    return app
+
+@pytest.fixture
+def client(app):
+    """Proporciona un cliente de pruebas para la aplicación."""
     return app.test_client()
 
-def test_signup_success(client, monkeypatch):
-    monkeypatch.setattr('src.models.user.User.find_by_email', lambda email: None)
-    monkeypatch.setattr('src.models.user.User.save', lambda self: None)
-    monkeypatch.setattr('src.models.user.User.to_dict', lambda self: dict(id=1, email=self.email, nombre=self.nombre, apellido=self.apellido, is_active=True))
+@pytest.fixture
+def access_token(app):
+    """Crea un token de acceso de prueba."""
+    with app.app_context():
+        return create_access_token(identity="user-123")
 
-    data = {
-        "email": "test@example.com",
-        "password": "secreto",
-        "nombre": "Juan",
-        "apellido": "Perez"
-    }
-    response = client.post('/signup', json=data)
-    assert response.status_code == 201
-    assert 'access_token' in response.json
+# --- Pruebas para el endpoint /signup ---
 
-def test_signup_missing_fields(client):
-    data = {
-        "email": "test@example.com",
-        "password": "secreto",
-        "nombre": "Juan"
-        # Falta 'apellido'
-    }
-    response = client.post('/signup', json=data)
-    assert response.status_code == 400
-    assert 'error' in response.json
+def test_signup_exito(client):
+    """Prueba el registro exitoso a través del endpoint."""
+    signup_data = {"email": "new@user.com", "password": "password123", "nombre": "New", "apellido": "User"}
+    service_response = {"message": "Usuario creado", "access_token": "fake_token"}
+    
+    with patch('src.blueprints.auth.register_user', return_value=service_response) as mock_service:
+        response = client.post('/auth/signup', json=signup_data)
+        
+        assert response.status_code == 201
+        assert response.get_json() == service_response
+        mock_service.assert_called_once_with(signup_data)
 
-def test_signup_invalid_email(client, monkeypatch):
-    monkeypatch.setattr('src.models.user.User.find_by_email', lambda email: None)
-    data = {
-        "email": "invalid-email",
-        "password": "secreto",
-        "nombre": "Juan",
-        "apellido": "Perez"
-    }
-    response = client.post('/signup', json=data)
-    assert response.status_code == 400
-    assert 'error' in response.json
+def test_signup_error_servicio(client):
+    """Prueba que el endpoint maneja errores del servicio de registro."""
+    error_msg = {'error': 'El usuario ya existe'}
+    with patch('src.blueprints.auth.register_user', side_effect=AuthServiceError(error_msg, 409)):
+        response = client.post('/auth/signup', json={})
+        
+        assert response.status_code == 409
+        assert response.get_json() == error_msg
 
-def test_signup_short_password(client, monkeypatch):
-    monkeypatch.setattr('src.models.user.User.find_by_email', lambda email: None)
-    data = {
-        "email": "test@example.com",
-        "password": "123",
-        "nombre": "Juan",
-        "apellido": "Perez"
-    }
-    response = client.post('/signup', json=data)
-    assert response.status_code == 400
-    assert 'error' in response.json
+def test_signup_error_inesperado(client):
+    """Prueba el manejo de un error inesperado en el endpoint de registro."""
+    with patch('src.blueprints.auth.register_user', side_effect=Exception("DB down")):
+        response = client.post('/auth/signup', json={})
 
-def test_signup_user_exists(client, monkeypatch):
-    user = MockUser("test@example.com", "secreto", "Juan", "Perez")
-    monkeypatch.setattr('src.models.user.User.find_by_email', lambda email: user)
-    data = {
-        "email": "test@example.com",
-        "password": "secreto",
-        "nombre": "Juan",
-        "apellido": "Perez"
-    }
-    response = client.post('/signup', json=data)
-    assert response.status_code == 409
-    assert 'error' in response.json
+        assert response.status_code == 500
+        json_data = response.get_json()
+        assert json_data['error'] == 'Error interno del servidor'
+        assert json_data['message'] == 'DB down'
 
-def test_login_success(client, monkeypatch):
-    user = MockUser("test@example.com", "secreto", "Juan", "Perez")
-    monkeypatch.setattr('src.models.user.User.find_by_email', lambda email: user)
-    monkeypatch.setattr('src.models.user.User.check_password', lambda self, pwd: pwd == "secreto")
-    monkeypatch.setattr('src.models.user.User.to_dict', lambda self: user.to_dict())
-    data = {
-        "email": "test@example.com",
-        "password": "secreto"
-    }
-    response = client.post('/login', json=data)
-    assert response.status_code == 200
-    assert 'access_token' in response.json
 
-def test_login_incorrect_password(client, monkeypatch):
-    user = MockUser("test@example.com", "secreto", "Juan", "Perez")
-    monkeypatch.setattr('src.models.user.User.find_by_email', lambda email: user)
-    monkeypatch.setattr('src.models.user.User.check_password', lambda self, pwd: False)
-    data = {
-        "email": "test@example.com",
-        "password": "incorrecto"
-    }
-    response = client.post('/login', json=data)
+# --- Pruebas para el endpoint /login ---
+
+def test_login_exito(client):
+    """Prueba el login exitoso a través del endpoint."""
+    login_data = {"email": "test@user.com", "password": "password123"}
+    service_response = {"message": "Login exitoso", "access_token": "fake_token"}
+    
+    with patch('src.blueprints.auth.login_user', return_value=service_response) as mock_service:
+        response = client.post('/auth/login', json=login_data)
+        
+        assert response.status_code == 200
+        assert response.get_json() == service_response
+        mock_service.assert_called_once_with(login_data)
+
+def test_login_error_servicio(client):
+    """Prueba que el endpoint maneja errores del servicio de login."""
+    error_msg = {'error': 'Credenciales inválidas'}
+    with patch('src.blueprints.auth.login_user', side_effect=AuthServiceError(error_msg, 401)):
+        response = client.post('/auth/login', json={})
+        
+        assert response.status_code == 401
+        assert response.get_json() == error_msg
+
+def test_login_error_inesperado(client):
+    """Prueba el manejo de un error inesperado en el endpoint de login."""
+    with patch('src.blueprints.auth.login_user', side_effect=Exception("Cache failed")):
+        response = client.post('/auth/login', json={})
+
+        assert response.status_code == 500
+        json_data = response.get_json()
+        assert json_data['error'] == 'Error interno del servidor'
+        assert json_data['message'] == 'Cache failed'
+
+
+# --- Pruebas para el endpoint /validate ---
+
+def test_validate_token_exito(client, access_token):
+    """Prueba la validación exitosa de un token."""
+    service_response = {"valid": True, "user": {"id": "user-123"}}
+    
+    with patch('src.blueprints.auth.validate_user_token', return_value=service_response) as mock_service:
+        response = client.post('/auth/validate', headers={"Authorization": f"Bearer {access_token}"})
+        
+        assert response.status_code == 200
+        assert response.get_json() == service_response
+        mock_service.assert_called_once_with("user-123")
+
+def test_validate_token_sin_token(client):
+    """Prueba que el endpoint de validación está protegido."""
+    response = client.post('/auth/validate')
     assert response.status_code == 401
 
-def test_login_inactive_user(client, monkeypatch):
-    user = MockUser("test@example.com", "secreto", "Juan", "Perez", is_active=False)
-    monkeypatch.setattr('src.models.user.User.find_by_email', lambda email: user)
-    monkeypatch.setattr('src.models.user.User.check_password', lambda self, pwd: True)
-    data = {
-        "email": "test@example.com",
-        "password": "secreto"
-    }
-    response = client.post('/login', json=data)
-    assert response.status_code == 401
-    assert 'error' in response.json
+def test_validate_token_error_inesperado(client, access_token):
+    """Prueba el manejo de un error inesperado en el endpoint de validación."""
+    with patch('src.blueprints.auth.validate_user_token', side_effect=Exception("Something broke")):
+        response = client.post('/auth/validate', headers={"Authorization": f"Bearer {access_token}"})
 
-def test_validate_token(client, monkeypatch):
-    user = MockUser("test@example.com", "secreto", "Juan", "Perez")
-    monkeypatch.setattr('src.models.user.User.find_by_email', lambda email: user)
-    monkeypatch.setattr('src.models.user.User.check_password', lambda self, pwd: True)
-    monkeypatch.setattr('src.models.user.User.find_by_id', lambda id: user)
-    monkeypatch.setattr('src.models.user.User.to_dict', lambda self: user.to_dict())
-    login_data = {"email": "test@example.com", "password": "secreto"}
-    response_login = client.post('/login', json=login_data)
-    assert 'access_token' in response_login.json
-    access_token = response_login.json['access_token']
-    headers = {"Authorization": f"Bearer {access_token}"}
-    response = client.post('/validate', headers=headers)
-    assert response.status_code == 200
-    assert response.json['valid'] is True
-
-def test_validate_token_user_not_found(client, monkeypatch):
-    monkeypatch.setattr('src.models.user.User.find_by_id', lambda id: None)
-    login_data = {"email": "test@example.com", "password": "secreto"}
-    # Mock login para obtener access_token válido
-    monkeypatch.setattr('src.models.user.User.find_by_email', lambda email: MockUser("test@example.com", "secreto", "Juan", "Perez"))
-    monkeypatch.setattr('src.models.user.User.check_password', lambda self, pwd: True)
-    response_login = client.post('/login', json=login_data)
-    access_token = response_login.json['access_token']
-    headers = {"Authorization": f"Bearer {access_token}"}
-    response = client.post('/validate', headers=headers)
-    assert response.status_code == 401
-    assert not response.json['valid']
-    assert 'error' in response.json
-
-def test_validate_token_inactive_user(client, monkeypatch):
-    user = MockUser("test@example.com", "secreto", "Juan", "Perez", is_active=False)
-    monkeypatch.setattr('src.models.user.User.find_by_id', lambda id: user)
-    login_data = {"email": "test@example.com", "password": "secreto"}
-    monkeypatch.setattr('src.models.user.User.find_by_email', lambda email: MockUser("test@example.com", "secreto", "Juan", "Perez"))
-    monkeypatch.setattr('src.models.user.User.check_password', lambda self, pwd: True)
-    response_login = client.post('/login', json=login_data)
-    access_token = response_login.json['access_token']
-    headers = {"Authorization": f"Bearer {access_token}"}
-    response = client.post('/validate', headers=headers)
-    assert response.status_code == 401
-    assert not response.json['valid']
-    assert 'error' in response.json
+        assert response.status_code == 500
+        json_data = response.get_json()
+        assert json_data['error'] == 'Error interno del servidor'
+        assert json_data['message'] == 'Something broke'
