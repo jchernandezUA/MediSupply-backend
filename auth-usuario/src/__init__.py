@@ -1,19 +1,15 @@
 from flask import Flask
 from flask_jwt_extended import JWTManager
-from src.config.config import Config, TestingConfig
+from src.config.config import Config
 from src.models.user import db
 from src.blueprints.health import health_bp
 from src.blueprints.auth import auth_bp
 
-def create_app(config_class=Config, testing=False):
+def create_app(config_class=Config):
     """
     Factory function para crear la aplicación Flask
     """
     app = Flask(__name__)
-    if testing:
-        app.config.from_object(TestingConfig)
-    else:
-        app.config.from_object(config_class)
     app.config.from_object(config_class)
     
     # Inicializar extensiones

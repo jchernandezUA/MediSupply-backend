@@ -33,4 +33,4 @@ ENV FLASK_ENV=production
 ENV PORT=5003
 
 # Comando para ejecutar la aplicación
-CMD ["gunicorn", "--bind", "0.0.0.0:5003", "--workers", "2", "--timeout", "120", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5003", "--workers", "2", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "app:app"]

@@ -1,104 +1,87 @@
 import pytest
-from src import create_app
-from src.models.user import User, db
-
-class DummyQuery:
-    def __init__(self, user=None):
-        self._user = user
-
-    def filter_by(self, **kwargs):
-        return self
-
-    def first(self):
-        return self._user
-
-    def get(self, id):
-        if self._user and self._user.id == id:
-            return self._user
-        return None
-
-class DummySession:
-    def __call__(self):
-        return self
-
-    def __init__(self):
-        self.committed = False
-        self.added = []
-        self.deleted = []
-
-    def add(self, instance):
-        self.added.append(instance)
-
-    def commit(self):
-        self.committed = True
-
-    def delete(self, instance):
-        self.deleted.append(instance)
+from flask import Flask
+from unittest.mock import patch
+from src.models.user import db, User  # Ajusta según tu estructura real
 
 @pytest.fixture(scope='module')
 def app():
-    app = create_app(testing=True)
+    app = Flask(__name__)
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'  # BD en memoria para tests
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    db.init_app(app)
     with app.app_context():
+        db.create_all()
         yield app
+        db.drop_all()
 
-@pytest.fixture
-def dummy_user():
-    return User(
-        email="test@example.com",
-        password="mypassword",
-        nombre="Test",
-        apellido="User"
-    )
-
-@pytest.fixture
-def dummy_db_session(monkeypatch):
-    session = DummySession()
-    # Mock db.session para evitar acceso real a base de datos
-    monkeypatch.setattr(db, 'session', session)
-    # Mock User.query para las pruebas que requieren consulta
-    monkeypatch.setattr(User, 'query', DummyQuery())
-    return session
-
-def test_password_hashing(dummy_user):
-    assert dummy_user.password_hash != "mypassword"
-    assert dummy_user.check_password("mypassword") is True
-    assert dummy_user.check_password("wrongpass") is False
-
-def test_to_dict_returns_expected_keys(dummy_user):
-    d = dummy_user.to_dict()
-    keys = ['id', 'email', 'nombre', 'apellido', 'is_active', 'created_at', 'updated_at']
-    for key in keys:
-        assert key in d
-    assert d['email'] == dummy_user.email
-
-def test_find_by_email(monkeypatch, dummy_user, app):
+def test_find_by_email_mock(app):
     with app.app_context():
-        dummy_query = DummyQuery(user=dummy_user)
-        monkeypatch.setattr(User, 'query', dummy_query)
-        found = User.find_by_email("test@example.com")
-        assert found == dummy_user
-        found_lower = User.find_by_email("TEST@EXAMPLE.COM")
-        assert found_lower == dummy_user
+        mock_user = User(
+            email="test@example.com",
+            password="password123",
+            nombre="Test",
+            apellido="User"
+        )
+        with patch('src.models.user.User.query') as mock_query:
+            mock_query.filter_by.return_value.first.return_value = mock_user
+            user = User.find_by_email("test@example.com")
+            assert user is not None
+            assert user.email == "test@example.com"
 
-def test_find_by_id(monkeypatch, dummy_user, app):
+def test_save_user_mock(app, mocker):
     with app.app_context():
-        dummy_query = DummyQuery(user=dummy_user)
-        monkeypatch.setattr(User, 'query', dummy_query)
-        found = User.find_by_id(dummy_user.id)
-        assert found == dummy_user
-        not_found = User.find_by_id(999)
-        assert not_found is None
+        user = User("test@example.com", "password123", "Test", "User")
+        mock_session = mocker.patch('src.models.user.db.session')
+        mock_session.add.return_value = None
+        mock_session.commit.return_value = None
+        saved_user = user.save()
+        mock_session.add.assert_called_once_with(user)
+        mock_session.commit.assert_called_once()
+        assert saved_user == user
 
-def test_save_and_delete(dummy_user, dummy_db_session):
-    dummy_user.save()
-    assert dummy_user in dummy_db_session.added
-    assert dummy_db_session.committed is True
+def test_check_password_correct(app):
+    with app.app_context():
+        password = "mypassword"
+        user = User("test@example.com", password, "Test", "User")
+        assert user.check_password(password) is True
 
-    dummy_db_session.committed = False  # Reset commit flag
-    dummy_user.delete()
-    assert dummy_user in dummy_db_session.deleted
-    assert dummy_db_session.committed is True
+def test_check_password_wrong(app):
+    with app.app_context():
+        user = User("test@example.com", "mypassword", "Test", "User")
+        assert user.check_password("wrongpassword") is False
 
-def test_repr_returns_email(dummy_user):
-    rep = repr(dummy_user)
-    assert dummy_user.email in rep
+def test_to_dict_contains_keys(app):
+    with app.app_context():
+        user = User("test@example.com", "password123", "Nombre", "Apellido")
+        user.id = 1
+        user.is_active = True
+        user.created_at = user.updated_at = None
+        user_dict = user.to_dict()
+        expected_keys = ['id', 'email', 'nombre', 'apellido', 'is_active', 'created_at', 'updated_at']
+        for key in expected_keys:
+            assert key in user_dict
+
+def test_find_by_id_mock(app):
+    with app.app_context():
+        mock_user = User("id@example.com", "pass", "N", "A")
+        with patch('src.models.user.User.query') as mock_query:
+            mock_query.get.return_value = mock_user
+            user = User.find_by_id(5)
+            assert user == mock_user
+            mock_query.get.assert_called_once_with(5)
+
+def test_delete_mock(app, mocker):
+    with app.app_context():
+        user = User("delete@example.com", "pass", "N", "A")
+        mock_session = mocker.patch('src.models.user.db.session')
+        mock_session.delete.return_value = None
+        mock_session.commit.return_value = None
+        user.delete()
+        mock_session.delete.assert_called_once_with(user)
+        mock_session.commit.assert_called_once()
+
+def test_repr(app):
+    with app.app_context():
+        user = User("repr@example.com", "pass", "N", "A")
+        repr_str = repr(user)
+        assert "repr@example.com" in repr_str

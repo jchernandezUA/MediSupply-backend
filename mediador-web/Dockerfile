@@ -32,4 +32,4 @@ ENV FLASK_ENV=production
 ENV PORT=5000
 
 # Comando para ejecutar la aplicación
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--timeout", "120", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5001", "--workers", "2", "--timeout", "120", "app:app"]
