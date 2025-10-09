@@ -5,7 +5,7 @@ from app.services.asignaciones_service import crear_asignacion, cerrar_asignacio
 bp_asignaciones = Blueprint("asignaciones", __name__)
 
 @bp_asignaciones.post("/vendedores/<string:v_id>/asignaciones")
-def post_asignacion(v_id: string):
+def post_asignacion(v_id: str):
     payload = request.get_json(force=True, silent=True) or {}
     payload["vendedorId"] = v_id
     data = crear_asignacion(payload)

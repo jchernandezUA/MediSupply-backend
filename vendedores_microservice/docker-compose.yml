@@ -20,7 +20,7 @@ services:
   vendedores-service:
     build:
       context: .
-      dockerfile: vendedores-service/Dockerfile
+      dockerfile: Dockerfile
     environment:
       FLASK_APP: app:create_app
       APP_ENV: local
@@ -36,3 +36,6 @@ services:
       interval: 10s
       timeout: 3s
       retries: 10
+
+volumes:
+  pgdata_vendedores:

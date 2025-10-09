@@ -14,15 +14,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 # Copiar requisitos primero para aprovechar cache
-COPY vendedores-service/requirements.txt /app/requirements.txt
+COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt && pip install gunicorn
 
 # Copiar el resto del código
-COPY vendedores-service /app
-
-# Entrypoint (migraciones + servidor)
-COPY vendedores-service/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+COPY . /app
 
 # Puerto del servicio
 EXPOSE 8001
@@ -31,4 +27,4 @@ EXPOSE 8001
 ENV FLASK_APP=app:create_app \
     SERVICE_PORT=8001
 
-CMD ["/entrypoint.sh"]
+CMD ["python", "run.py"]
