@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: vendedores
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata_vendedores:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d vendedores"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  vendedores-service:
+    build:
+      context: .
+      dockerfile: vendedores-service/Dockerfile
+    environment:
+      FLASK_APP: app:create_app
+      APP_ENV: local
+      SERVICE_PORT: 8001
+      DB_URL: postgresql+psycopg2://user:pass@postgres:5432/vendedores
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8001:8001"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8001/v1/health || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
