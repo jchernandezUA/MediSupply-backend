@@ -1,0 +1,38 @@
+# Entornos virtuales
+venv/
+env/
+.venv/
+
+# Cache de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Tests y coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Base de datos local
+*.db
+*.sqlite
+*.sqlite3
+instance/
+
+# Archivos de desarrollo
+.env
+.vscode/
+.idea/
+
+# Git
+.git/
+.gitignore
+
+# Uploads locales
+uploads/
+
+# Documentación
+README.md
+CONTRATOS_API.md
