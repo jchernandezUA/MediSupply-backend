@@ -2,7 +2,7 @@ from flask import Flask
 from flask_jwt_extended import JWTManager
 from src.config.config import Config
 from src.blueprints.health import health_bp
-from src.blueprints.proveedor import proveedor_bp
+from src.blueprints.proveedores import proveedor_bp
 
 def create_app(config_class=Config):
     """
