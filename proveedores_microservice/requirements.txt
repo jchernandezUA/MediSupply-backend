@@ -1,0 +1,14 @@
+Flask
+Flask-SQLAlchemy
+Flask-Marshmallow
+marshmallow
+marshmallow-sqlalchemy
+pytest
+pytest-cov
+pytest-mock
+pytest-flask
+python-dotenv
+psycopg2-binary
+Werkzeug
+SQLAlchemy
+coverage

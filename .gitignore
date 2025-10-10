@@ -205,3 +205,25 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Microservices - archivos que no deben versionarse
+# Uploads de archivos de usuarios
+*/uploads/
+**/uploads/
+
+# Bases de datos locales
+*.db
+*.sqlite
+*.sqlite3
+
+# Archivos de instancia
+*/instance/
+**/instance/
+
+# Coverage reports HTML
+*/htmlcov/
+**/htmlcov/
+
+# Pytest cache
+*/.pytest_cache/
+**/.pytest_cache/
