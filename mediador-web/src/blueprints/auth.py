@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from src.services.auth import register_user, login_user, validate_user_token, AuthServiceError
+from src.services.auth import register_user, login_user, AuthServiceError
 
 # Crear el blueprint para autenticación
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')

@@ -54,31 +54,3 @@ def login_user(data):
     response = requests.post(f'{AUTH_USUARIO_URL}/auth/login', json=data)
 
     return response.json()
-
-
-def validate_user_token(user_id):
-    """
-    Lógica de negocio para validar un token y el estado del usuario.
-    """
-    try:
-        user = User.find_by_id(int(user_id))
-    except (ValueError, TypeError):
-        raise AuthServiceError({'valid': False, 'error': 'ID de usuario inválido en el token'}, 401)
-
-    if not user:
-        raise AuthServiceError({
-            'valid': False,
-            'error': 'Usuario no encontrado'
-        }, 401)
-
-    if not user.is_active:
-        raise AuthServiceError({
-            'valid': False,
-            'error': 'Usuario inactivo'
-        }, 401)
-
-    return {
-        'valid': True,
-        'user': user.to_dict(),
-        'message': 'Token válido'
-    }
