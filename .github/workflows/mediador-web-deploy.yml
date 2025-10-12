@@ -10,6 +10,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      AWS_ACCOUNT_ID_JOSE: ${{ secrets.AWS_ACCOUNT_ID_JOSE }}
+      ECR_REPO: mediador-web
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -23,12 +26,12 @@ jobs:
 
       - name: Login to Amazon ECR
         run: |
-          aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 012146976167.dkr.ecr.us-east-2.amazonaws.com
+          aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID_JOSE.dkr.ecr.us-east-2.amazonaws.com
 
       - name: Build and push Docker image (mediador-web)
         run: |
-          docker build -t 012146976167.dkr.ecr.us-east-2.amazonaws.com/mediador-web:latest ./mediador-web
-          docker push 012146976167.dkr.ecr.us-east-2.amazonaws.com/mediador-web:latest
+          docker build -t $AWS_ACCOUNT_ID_JOSE.dkr.ecr.us-east-2.amazonaws.com/$ECR_REPO:latest ./mediador-web
+          docker push $AWS_ACCOUNT_ID_JOSE.dkr.ecr.us-east-2.amazonaws.com/$ECR_REPO:latest
 
       - name: Update kubeconfig
         run: |
