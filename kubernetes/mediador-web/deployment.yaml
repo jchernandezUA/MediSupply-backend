@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mediador-web-deployment
+  namespace: medisupply
+  labels:
+    app: mediador-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mediador-web
+  template:
+    metadata:
+      labels:
+        app: mediador-web
+    spec:
+      containers:
+      - name: mediador-web
+        image: 012146976167.dkr.ecr.us-east-2.amazonaws.com/mediador-web:latest
+        ports:
+        - containerPort: 5001
+        envFrom:
+        - configMapRef:
+            name: mediador-web-configmap
+        imagePullPolicy: IfNotPresent

@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vendedores-deployment
+  namespace: medisupply
+  labels:
+    app: vendedores
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vendedores
+  template:
+    metadata:
+      labels:
+        app: vendedores
+    spec:
+      containers:
+      - name: vendedores
+        image: 012146976167.dkr.ecr.us-east-2.amazonaws.com/vendedores:latest
+        ports:
+        - containerPort: 8001
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          export DB_URL="postgresql://postgres:$(POSTGRES_PASSWORD)@postgres-service:5432/medisupply"
+          python run.py
+        env:
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: postgres-password

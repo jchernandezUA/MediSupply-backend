@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: productos-service
+  namespace: medisupply
+spec:
+  selector:
+    app: productos
+  ports:
+    - protocol: TCP
+      port: 5001
+      targetPort: 5001

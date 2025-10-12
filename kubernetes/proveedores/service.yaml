@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: proveedores-service
+  namespace: medisupply
+spec:
+  selector:
+    app: proveedores
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000

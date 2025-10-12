@@ -1,0 +1,20 @@
+# This Ingress requires an NGINX Ingress controller to be installed in the cluster.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: medisupply-ingress
+  namespace: medisupply
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      - path: /web/(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: mediador-web-service
+            port:
+              number: 5001
