@@ -479,8 +479,7 @@ class TestProveedorEndpoints:
         assert response.status_code == 201
         data = response.get_json()
         assert data['mensaje'] == 'Proveedor registrado exitosamente'
-        assert data['estado'] == 'confirmado'
-        assert data['proveedor']['nombre'] == valid_proveedor_data['nombre']
+        assert data['data']['nombre'] == valid_proveedor_data['nombre']
     
     def test_registrar_proveedor_sin_certificaciones(self, client, valid_proveedor_data):
         """Test registro sin certificaciones"""
@@ -621,8 +620,8 @@ class TestIntegration:
         
         assert response.status_code == 201
         result = response.get_json()
-        assert result['proveedor']['nit'] == data['nit']
-        assert result['proveedor']['estado'] == 'Activo'
+        assert result['data']['nit'] == data['nit']
+        assert result['data']['estado'] == 'Activo'
         
         # Verificar que existe en la base de datos
         with app.app_context():
@@ -639,9 +638,9 @@ class TestIntegration:
                               data=form_data2,
                               content_type='multipart/form-data')
         
-        assert response2.status_code == 409
+        assert response2.status_code == 400
         result2 = response2.get_json()
-        assert 'Ya existe un proveedor' in result2['error']
+        assert 'Proveedor con el mismo NIT o correo ya existe.' in result2['error']
 
 # Configuración de pytest para coverage
 def pytest_configure(config):

@@ -39,23 +39,28 @@ def registrar_proveedor():
         
         return jsonify({
             "mensaje": "Proveedor registrado exitosamente",
-            "proveedor": proveedor_schema.dump(nuevo_proveedor),
-            "estado": "confirmado"
+            "data": proveedor_schema.dump(nuevo_proveedor),
         }), 201
         
     except ConflictError as e:
-        return jsonify(e.args[0]), 409  # 409 Conflict para duplicados
+        return jsonify({
+            "error": "Proveedor con el mismo NIT o correo ya existe.",
+            "codigo": "PROVEEDOR_DUPLICADO"
+        }), 400  # 400 Bad Request para duplicados
     except ValueError as e:
-        return jsonify(e.args[0]), 400  # 400 Bad Request para validaciones
+        return jsonify({
+            "error": str(e.args[0]),
+            "codigo": "VALOR_INVALIDO"
+        
+        }), 400  # 400 Bad Request para validaciones
     except Exception as e:
         # Capturar específicamente errores de tamaño de archivo
         error_msg = str(e)
         if "413" in error_msg or "Request Entity Too Large" in error_msg:
             return jsonify({
                 "error": "El archivo excede el tamaño máximo permitido de 5MB",
-                "codigo": "ARCHIVO_MUY_GRANDE",
-                "tamaño_maximo": "5MB"
-            }), 413
+                "codigo": "ARCHIVO_MUY_GRANDE"
+            }), 400
         
         return jsonify({"error": f"Error interno del servidor: {error_msg}"}), 500
 
@@ -93,7 +98,7 @@ def cambiar_estado_proveedor(proveedor_id):
         
         return jsonify({
             "mensaje": f"Proveedor {nuevo_estado.lower()}",
-            "proveedor": proveedor_schema.dump(proveedor)
+            "data": proveedor_schema.dump(proveedor)
         }), 200
         
     except Exception as e:

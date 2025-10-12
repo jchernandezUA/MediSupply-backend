@@ -13,16 +13,23 @@ def crear_proveedor():
     Delega la lógica de negocio al servicio de proveedores.
     """
     try:
-        current_user_id = get_jwt_identity()
-        datos_proveedor = request.get_json()
         
-        # Llamar a la capa de servicio para manejar la lógica
-        datos_respuesta = crear_proveedor_externo(datos_proveedor, current_user_id)
+         # Obtener datos del formulario
+        data = request.form
+        files = request.files
         
-        return jsonify(datos_respuesta), 201
+        # Crear proveedor usando el servicio
+        nuevo_proveedor = crear_proveedor_externo(data, files, get_jwt_identity())
+        
+        return jsonify({
+            "data": nuevo_proveedor
+        }), 201
+
+
 
     except ProveedorServiceError as e:
         # Capturar errores controlados desde la capa de servicio
+        print(e)
         return jsonify(e.message), e.status_code
 
     except Exception as e:
@@ -30,5 +37,5 @@ def crear_proveedor():
         current_app.logger.error(f"Error inesperado en el blueprint de proveedor: {str(e)}")
         return jsonify({
             'error': 'Error interno del servidor',
-            'message': str(e)
+            'codigo': str(object=e)
         }), 500
