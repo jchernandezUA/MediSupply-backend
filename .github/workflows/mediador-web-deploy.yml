@@ -3,7 +3,7 @@ name: Deploy to AWS EKS
 on:
   push:
     branches:
-      - develop
+      - KAN-160
     paths:
       - 'mediador-web/**'
 
