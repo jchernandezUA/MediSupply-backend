@@ -79,5 +79,5 @@ def crear_proveedor_externo(datos_proveedor, files, user_id):
         current_app.logger.error(f"Error de conexión con microservicio de proveedores: {str(e)}")
         raise ProveedorServiceError({
             'error': 'Error de conexión con el microservicio de proveedores',
-            'mensaje': str(e)
+            'codigo': 'ERROR_CONEXION'
         }, 503)
