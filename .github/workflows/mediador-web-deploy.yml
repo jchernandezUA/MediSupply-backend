@@ -1,0 +1,39 @@
+name: Deploy to AWS EKS
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'mediador-web/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_JOSE }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_JOSE }}
+          aws-region: us-east-2
+
+      - name: Login to Amazon ECR
+        run: |
+          aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 012146976167.dkr.ecr.us-east-2.amazonaws.com
+
+      - name: Build and push Docker image (mediador-web)
+        run: |
+          docker build -t 012146976167.dkr.ecr.us-east-2.amazonaws.com/mediador-web:latest ./mediador-web
+          docker push 012146976167.dkr.ecr.us-east-2.amazonaws.com/mediador-web:latest
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --region us-east-2 --name medisupply-cluster
+
+      - name: Deploy to EKS
+        run: |
+          kubectl apply -f kubernetes/
