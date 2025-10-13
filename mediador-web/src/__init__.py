@@ -23,5 +23,5 @@ def create_app(config_class=Config):
     app.register_blueprint(auth_bp)
     app.register_blueprint(proveedor_bp)
     app.register_blueprint(vendedores_bp)
-    
+
     return app
