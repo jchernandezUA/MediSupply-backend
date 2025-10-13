@@ -1,4 +1,3 @@
-# This Ingress requires an NGINX Ingress controller to be installed in the cluster.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -6,6 +5,10 @@ metadata:
   namespace: medisupply
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "PUT, GET, POST, OPTIONS, DELETE"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Origin,Content-Type,Accept,Authorization"
 spec:
   ingressClassName: nginx
   rules:
