@@ -42,8 +42,10 @@ def register_user(data):
 
     return {
         'message': 'Usuario creado exitosamente',
-        'user': user.to_dict(),
-        'access_token': access_token
+        'data': {
+            'user': user.to_dict(),
+            'access_token': access_token
+        }
     }
 
 def login_user(data):
@@ -65,8 +67,10 @@ def login_user(data):
 
     return {
         'message': 'Login exitoso',
-        'user': user.to_dict(),
-        'access_token': access_token
+        'data': {
+            'user': user.to_dict(),
+            'access_token': access_token
+        }
     }
 
 def validate_user_token(user_id):
@@ -80,14 +84,14 @@ def validate_user_token(user_id):
 
     if not user:
         raise AuthServiceError({
-            'valid': False,
-            'error': 'Usuario no encontrado'
+            'error': 'Usuario no encontrado',
+            'codigo': 'USUARIO_NO_ENCONTRADO'
         }, 401)
 
     if not user.is_active:
         raise AuthServiceError({
-            'valid': False,
-            'error': 'Usuario inactivo'
+            'error': 'Usuario inactivo',
+            'codigo': 'USUARIO_INACTIVO'
         }, 401)
 
     return {

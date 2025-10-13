@@ -21,7 +21,7 @@ def signup():
         current_app.logger.error(f"Error en signup: {str(e)}")
         return jsonify({
             'error': 'Error interno del servidor',
-            'message': str(e)
+            'codigo': 'CODIGO_ERROR_INTERNO'
         }), 500
 
 @auth_bp.route('/login', methods=['POST'])
@@ -40,5 +40,5 @@ def login():
         current_app.logger.error(f"Error en login: {str(e)}")
         return jsonify({
             'error': 'Error interno del servidor',
-            'message': str(e)
+            'codigo': 'CODIGO_ERROR_INTERNO'
         }), 500

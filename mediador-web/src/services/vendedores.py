@@ -53,5 +53,5 @@ def crear_vendedor_externo(datos_vendedor):
         current_app.logger.error(f"Error de conexión con microservicio de vendedores: {str(e)}")
         raise VendedorServiceError({
             'error': 'Error de conexión con el microservicio de vendedores',
-            'message': str(e)
+            'codigo': 'ERROR_CONEXION'
         }, 503)
