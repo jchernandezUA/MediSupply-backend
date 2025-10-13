@@ -37,8 +37,8 @@ def test_register_user_exito(app):
             mock_user_class.find_by_email.assert_called_once_with(user_data["email"])
             mock_instance.save.assert_called_once()
             mock_create_token.assert_called_once_with(identity="1")
-            assert result['access_token'] == "fake_token"
-            assert result['user']['email'] == user_data["email"]
+            assert result['data']['access_token'] == "fake_token"
+            assert result['data']['user']['email'] == user_data["email"]
 
 @pytest.mark.parametrize("data, expected_error", [
     (None, "No se proporcionaron datos"),
@@ -81,8 +81,8 @@ def test_login_user_exito(app):
              patch('src.services.auth_service.create_access_token', return_value="fake_token"):
             
             result = login_user(login_data)
-            assert result['access_token'] == "fake_token"
-            assert result['user']['email'] == login_data["email"]
+            assert result['data']['access_token'] == "fake_token"
+            assert result['data']['user']['email'] == login_data["email"]
 
 def test_login_user_credenciales_invalidas(app):
     """Prueba el login con credenciales inválidas (usuario no encontrado o contraseña incorrecta)."""
