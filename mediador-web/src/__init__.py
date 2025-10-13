@@ -12,7 +12,13 @@ def create_app(config_class=Config):
     Factory function para crear la aplicación Flask
     """
     app = Flask(__name__)
-    CORS(app, origins=["https://d2rz3b4ejfic21.cloudfront.net"])
+    CORS(
+        app,
+        origins=["https://d2rz3b4ejfic21.cloudfront.net"],
+        supports_credentials=True,
+        allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
+        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    )
     app.config.from_object(config_class)
     
     # Inicializar JWT
