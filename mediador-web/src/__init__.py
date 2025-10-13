@@ -20,7 +20,7 @@ def create_app(config_class=Config):
         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     )
     app.config.from_object(config_class)
-    
+
     # Inicializar JWT
     jwt = JWTManager(app)
     
