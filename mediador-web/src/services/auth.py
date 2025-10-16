@@ -1,6 +1,7 @@
 import os
 from flask_jwt_extended import create_access_token
 import requests
+from src.config.config import Config as config
 
 class AuthServiceError(Exception):
     """Excepción personalizada para errores en la capa de servicio de autenticación."""
@@ -8,8 +9,6 @@ class AuthServiceError(Exception):
         super().__init__(message)
         self.message = message
         self.status_code = status_code
-
-AUTH_USUARIO_URL = os.environ.get('AUTH_USUARIO_URL', 'http://localhost:5003')
 
 def register_user(data):
     """
@@ -30,7 +29,7 @@ def register_user(data):
     if len(data['password']) < 6:
         raise AuthServiceError({'error': 'La contraseña debe tener al menos 6 caracteres'}, 400)
 
-    response = requests.post(f'{AUTH_USUARIO_URL}/auth/signup', json=data)
+    response = requests.post(f'{config.AUTH_URL}/auth/signup', json=data)
 
     if response.status_code != 201:
         raise AuthServiceError({'error': 'Error al registrar usuario'}, response.status_code)

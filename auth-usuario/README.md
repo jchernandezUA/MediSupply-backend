@@ -186,15 +186,15 @@ Authorization: Bearer <access_token>
    python app.py
    ```
 
-La aplicación estará disponible en `http://localhost:5003`
+La aplicación estará disponible en `http://localhost:5001`
 
 ### Probar los Endpoints
 ```bash
 # Health check
-curl http://localhost:5003/health
+curl http://localhost:5001/health
 
 # Registro de usuario
-curl -X POST http://localhost:5003/auth/signup \
+curl -X POST http://localhost:5001/auth/signup \
   -H "Content-Type: application/json" \
   -d '{
     "email": "usuario@ejemplo.com",
@@ -204,7 +204,7 @@ curl -X POST http://localhost:5003/auth/signup \
   }'
 
 # Login
-curl -X POST http://localhost:5003/auth/login \
+curl -X POST http://localhost:5001/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "usuario@ejemplo.com",
@@ -212,7 +212,7 @@ curl -X POST http://localhost:5003/auth/login \
   }'
 
 # Validar token
-curl -X POST http://localhost:5003/auth/validate \
+curl -X POST http://localhost:5001/auth/validate \
   -H "Authorization: Bearer <access_token>"
 ```
 
@@ -225,7 +225,7 @@ docker build -t auth-usuario .
 
 ### Ejecutar el contenedor
 ```bash
-docker run -p 5003:5003 \
+docker run -p 5001:5001 \
   -e DB_HOST=localhost \
   -e DB_NAME=medsupply \
   -e DB_USER=postgres \
@@ -251,7 +251,7 @@ services:
   auth-usuario:
     build: .
     ports:
-      - "5003:5003"
+      - "5001:5001"
     environment:
       DB_HOST: postgres
       DB_NAME: medsupply
@@ -267,7 +267,7 @@ volumes:
 ## Variables de Entorno
 
 - `HOST`: Host del servidor (default: 0.0.0.0)
-- `PORT`: Puerto en el que se ejecutará la aplicación (default: 5003)
+- `PORT`: Puerto en el que se ejecutará la aplicación (default: 5001)
 - `DEBUG`: Modo debug (default: false)
 - `SECRET_KEY`: Clave secreta para Flask
 - `JWT_SECRET_KEY`: Clave secreta para JWT

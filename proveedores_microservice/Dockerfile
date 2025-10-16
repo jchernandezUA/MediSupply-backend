@@ -15,12 +15,12 @@ COPY . .
 RUN mkdir -p uploads/certificaciones
 
 # Exponer puerto
-EXPOSE 5000
+EXPOSE 5006
 
 # Variable de entorno para Python
 ENV PYTHONUNBUFFERED=1
 # Variables de entorno
-ENV PORT=5000
+ENV PORT=5006
 
 # Comando para ejecutar la aplicación
 CMD ["python", "run.py"]

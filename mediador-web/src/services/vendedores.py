@@ -33,7 +33,7 @@ def crear_vendedor_externo(datos_vendedor):
 
     # --- Fin de la validación ---
 
-    vendedores_url = os.environ.get('VENDEDORES_URL', 'http://localhost:8001/v1')
+    vendedores_url = os.environ.get('VENDEDORES_URL', 'http://localhost:5007/v1')
 
     try:
         response = requests.post(
