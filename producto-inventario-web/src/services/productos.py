@@ -51,8 +51,6 @@ def crear_producto_externo(datos_producto, files, user_id):
     data = datos_producto.copy()
     data['usuario_registro'] = user_id
 
-    print("Datos del producto a enviar:", datos_producto)
-
 
     _files = {}
     if 'certificacion' in files:
@@ -62,29 +60,23 @@ def crear_producto_externo(datos_producto, files, user_id):
         raise ProductoServiceError({'error': 'No se proporcionaron archivos de certificación', 'codigo': 'ARCHIVOS_FALTANTES'}, 400)
 
 
-    print("Archivos del producto a enviar:", _files)
-
     # --- Fin de la validación ---
-    try:
-        url_producto = os.getenv('PRODUCTO_URL', config.PRODUCTO_URL)+'/productos'
-        print("Enviando datos al microservicio de productos... "+url_producto)
-        response = requests.post(
-            url_producto,
-            data=data.to_dict(),
-            files=_files
-        )
-        response.raise_for_status()  # Lanza HTTPError para respuestas 4xx/5xx
-        datos_respuesta = response.json()
-        return datos_respuesta
-    except ProductoServiceError as e:
-        # Capturar errores controlados desde la capa de servicio
-        print(e)
-        return jsonify(e.message), e.status_code
-    except Exception as e:
-        # Capturar cualquier otro error no esperado
-        current_app.logger.error(f"Error inesperado en el servicio de producto: {str(e)}")
-        return jsonify({
-            'error': 'Error interno del servidor',
-            'codigo': 'ERROR_INESPERADO'
-        }), 500
+
+    url_producto = config.PRODUCTO_URL + '/api/productos'
+    response = requests.post(
+        url_producto,
+        data=data.to_dict(),
+        files=_files
+    )
+    if (response.status_code != 201):
+        print(f'SERVICE - Error en el microservicio de productos: {response.text}')
+        try:
+            error_data = response.json()
+        except Exception:
+            error_data = {'error': response.text, 'codigo': 'ERROR_INESPERADO'}
+        raise ProductoServiceError(error_data, response.status_code)
+    datos_respuesta = response.json()
+    return datos_respuesta
+        
+
 

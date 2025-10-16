@@ -21,18 +21,19 @@ def crear_producto():
         nuevo_producto = crear_producto_externo(data, files, get_jwt_identity())
         
         # Responder con el producto creado
+        print(f"BLUEPRINT - Producto creado: {nuevo_producto}")
         return jsonify({
             "data": nuevo_producto
         }), 201
 
     except ProductoServiceError as e:
         # Capturar errores controlados desde la capa de servicio
-        print(e)
+        print(f"BLUEPRINT - Error en ProductoServiceError: {e.message}")
         return jsonify(e.message), e.status_code
 
     except Exception as e:
+        print(f"BLUEPRINT - Error inesperado en producto: {str(e)}")
         # Capturar cualquier otro error no esperado
-        current_app.logger.error(f"Error inesperado en el blueprint de productos: {str(e)}")
         return jsonify({
             'error': 'Error interno del servidor',
             'codigo': 'ERROR_INESPERADO'
