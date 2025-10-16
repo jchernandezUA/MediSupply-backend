@@ -23,7 +23,7 @@ def test_register_user_success(mock_post):
 
     result = register_user(valid_register_data)
     assert result['email'] == valid_register_data['email']
-    mock_post.assert_called_once_with('http://localhost:5003/auth/signup', json=valid_register_data)
+    mock_post.assert_called_once_with('http://localhost:5001/auth/signup', json=valid_register_data)
 
 def test_register_user_none_data():
     with pytest.raises(AuthServiceError) as excinfo:
@@ -70,7 +70,7 @@ def test_login_user_success(mock_post):
 
     result = login_user(valid_login_data)
     assert 'access_token' in result
-    mock_post.assert_called_once_with('http://localhost:5003/auth/login', json=valid_login_data)
+    mock_post.assert_called_once_with('http://localhost:5001/auth/login', json=valid_login_data)
 
 def test_login_user_missing_email_or_password():
     with pytest.raises(AuthServiceError) as excinfo:

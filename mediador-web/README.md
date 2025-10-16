@@ -101,15 +101,15 @@ Authorization: Bearer <access_token>
    python app.py
    ```
 
-La aplicación estará disponible en `http://localhost:5001`
+La aplicación estará disponible en `http://localhost:5002`
 
 ### Probar los Endpoints
 ```bash
 # Health check
-curl http://localhost:5001/health
+curl http://localhost:5002/health
 
 # Crear proveedor (BFF) - Requiere JWT
-curl -X POST http://localhost:5001/proveedor \
+curl -X POST http://localhost:5002/proveedor \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <access_token>" \
   -d '{
@@ -128,15 +128,15 @@ docker build -t mediador-web .
 
 ### Ejecutar el contenedor
 ```bash
-docker run -p 5001:5001 mediador-web
+docker run -p 5002:5002 mediador-web
 ```
 
 ### Ejecutar con variables de entorno
 ```bash
-docker run -p 5001:5001 \
+docker run -p 5002:5002 \
   -e DEBUG=true \
-  -e PORT=5001 \
-  -e PROVEEDORES_URL=http://localhost:5002 \
+  -e PORT=5002 \
+  -e PROVEEDORES_URL=http://localhost:5006 \
   -e JWT_SECRET_KEY=your-jwt-secret-key-here \
   mediador-web
 ```
@@ -144,11 +144,11 @@ docker run -p 5001:5001 \
 ## Variables de Entorno
 
 - `HOST`: Host del servidor (default: 0.0.0.0)
-- `PORT`: Puerto en el que se ejecutará la aplicación (default: 5001)
+- `PORT`: Puerto en el que se ejecutará la aplicación (default: 5002)
 - `DEBUG`: Modo debug (default: false)
 - `SECRET_KEY`: Clave secreta para Flask (default: dev-secret-key)
-- `PROVEEDORES_URL`: URL del microservicio de proveedores (default: http://localhost:5002)
-- `AUTH_URL`: URL del microservicio de autenticación (default: http://localhost:5003)
+- `PROVEEDORES_URL`: URL del microservicio de proveedores (default: http://localhost:5006)
+- `AUTH_URL`: URL del microservicio de autenticación (default: http://localhost:5001)
 - `JWT_SECRET_KEY`: Clave secreta para validar JWT (debe coincidir con auth-usuario)
 
 ## Estructura del Proyecto

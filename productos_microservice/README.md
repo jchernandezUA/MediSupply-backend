@@ -55,7 +55,7 @@ python run.py
 ```
 
 El servidor estará disponible en:
-- http://localhost:5001
+- http://localhost:5008
 
 ## 🧪 Ejecutar Tests
 
@@ -79,20 +79,20 @@ docker build -t productos-microservice .
 
 ```bash
 # Con variables de entorno inline
-docker run -p 5001:5001 \
+docker run -p 5008:5008 \
   -e DATABASE_URL=postgresql://postgres:postgres@host.docker.internal:5433/medisupply \
   -e SECRET_KEY=supersecretkey \
   -e FLASK_DEBUG=false \
   productos-microservice
 
 # O con archivo .env
-docker run -p 5001:5001 --env-file .env productos-microservice
+docker run -p 5008:5008 --env-file .env productos-microservice
 ```
 
 ### 3. Verificar
 
 ```bash
-curl http://localhost:5001/api/productos/health
+curl http://localhost:5008/api/productos/health
 ```
 
 **Nota**: Usar `host.docker.internal` para conectar con PostgreSQL en el host desde el contenedor.
@@ -122,7 +122,7 @@ productos_microservice/
 ## 🚦 Health Check
 
 ```bash
-curl http://localhost:5001/api/productos/health
+curl http://localhost:5008/api/productos/health
 ```
 
 ## 📊 Categorías de Productos

@@ -21,10 +21,10 @@ RUN pip install --no-cache-dir -r requirements.txt && pip install gunicorn
 COPY . /app
 
 # Puerto del servicio
-EXPOSE 8001
+EXPOSE 5007
 
 # Variables por defecto (se pueden sobrescribir en compose)
 ENV FLASK_APP=app:create_app \
-    SERVICE_PORT=8001
+    SERVICE_PORT=5007
 
 CMD ["python", "run.py"]

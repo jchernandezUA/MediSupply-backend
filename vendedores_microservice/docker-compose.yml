@@ -24,15 +24,15 @@ services:
     environment:
       FLASK_APP: app:create_app
       APP_ENV: local
-      SERVICE_PORT: 8001
+      SERVICE_PORT: 5007
       DB_URL: postgresql+psycopg2://user:pass@postgres:5432/vendedores
     depends_on:
       postgres:
         condition: service_healthy
     ports:
-      - "8001:8001"
+      - "5007:5007"
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8001/v1/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5007/v1/health || exit 1"]
       interval: 10s
       timeout: 3s
       retries: 10

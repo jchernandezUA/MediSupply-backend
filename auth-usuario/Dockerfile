@@ -25,12 +25,12 @@ RUN useradd --create-home --shell /bin/bash app && chown -R app:app /app
 USER app
 
 # Exponer el puerto
-EXPOSE 5003
+EXPOSE 5001
 
 # Variables de entorno
 ENV FLASK_APP=app.py
 ENV FLASK_ENV=production
-ENV PORT=5003
+ENV PORT=5001
 
 # Comando para ejecutar la aplicación
-CMD ["gunicorn", "--bind", "0.0.0.0:5003", "--workers", "2", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5001", "--workers", "2", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "app:app"]

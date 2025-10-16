@@ -33,7 +33,7 @@ def test_crear_vendedor_externo_exito(mock_post):
     result = crear_vendedor_externo(valid_vendedor_data)
     assert result['nombre'] == 'Juan Perez'
     mock_post.assert_called_once_with(
-        'http://localhost:8001/v1/vendedores',
+        'http://localhost:5007/v1/vendedores',
         json=valid_vendedor_data,
         headers={'Content-Type': 'application/json'},
         timeout=10

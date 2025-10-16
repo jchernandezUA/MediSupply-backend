@@ -81,8 +81,8 @@ python run.py
 ```
 
 El servidor estará disponible en:
-- http://localhost:5000
-- http://127.0.0.1:5000
+- http://localhost:5006
+- http://127.0.0.1:5006
 
 ## 🧪 Ejecutar Tests
 
@@ -143,7 +143,7 @@ proveedores_microservice/
 
 ```bash
 # Verificar que el servicio está corriendo
-curl http://localhost:5000/api/proveedores/health
+curl http://localhost:5006/api/proveedores/health
 
 # Respuesta esperada:
 {

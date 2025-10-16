@@ -16,11 +16,11 @@ COPY . .
 # Crear directorio para uploads
 RUN mkdir -p uploads/certificaciones
 
-# Exponer el puerto 5001
-EXPOSE 5001
+# Exponer el puerto 5008
+EXPOSE 5008
 
 # Variables de entorno por defecto (se pueden sobrescribir)
-ENV PORT=5001
+ENV PORT=5008
 ENV PYTHONUNBUFFERED=1
 
 # Comando para ejecutar la aplicación
