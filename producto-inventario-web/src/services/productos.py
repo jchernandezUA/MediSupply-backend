@@ -65,7 +65,7 @@ def crear_producto_externo(datos_producto, files, user_id):
     url_producto = config.PRODUCTO_URL + '/api/productos'
     response = requests.post(
         url_producto,
-        data=data.to_dict(),
+        data=data,
         files=_files
     )
     if (response.status_code != 201):
