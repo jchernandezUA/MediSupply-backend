@@ -19,7 +19,7 @@ spec:
       - name: vendedores
         image: 012146976167.dkr.ecr.us-east-2.amazonaws.com/vendedores:latest
         ports:
-        - containerPort: 8001
+        - containerPort: 5007
         imagePullPolicy: IfNotPresent
         command: ["/bin/sh", "-c"]
         args:

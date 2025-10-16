@@ -8,5 +8,5 @@ spec:
     app: vendedores
   ports:
     - protocol: TCP
-      port: 8001
-      targetPort: 8001
+      port: 5007
+      targetPort: 5007

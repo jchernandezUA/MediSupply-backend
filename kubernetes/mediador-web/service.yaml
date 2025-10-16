@@ -4,11 +4,10 @@ metadata:
   name: mediador-web-service
   namespace: medisupply
 spec:
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: mediador-web
   ports:
     - protocol: TCP
-      port: 5001
-      targetPort: 5001
-      nodePort: 30501  # puerto entre 30000 y 32767
+      port: 80
+      targetPort: 5002

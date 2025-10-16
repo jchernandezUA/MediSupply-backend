@@ -19,7 +19,7 @@ spec:
       - name: auth-usuario
         image: 012146976167.dkr.ecr.us-east-2.amazonaws.com/auth-usuario:v2-amd64
         ports:
-        - containerPort: 5003
+        - containerPort: 5001
         imagePullPolicy: IfNotPresent
         env:
         - name: DB_HOST

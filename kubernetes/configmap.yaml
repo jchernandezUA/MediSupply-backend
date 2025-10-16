@@ -4,7 +4,7 @@ metadata:
   name: mediador-web-configmap
   namespace: medisupply
 data:
-  AUTH_USUARIO_URL: "http://auth-usuario-service:5003"
-  PROVEEDORES_URL: "http://proveedores-service:5000/api"
-  VENDEDORES_URL: "http://vendedores-service:8001/v1"
-  PRODUCTOS_URL: "http://productos-service:5001"
+  AUTH_URL: "http://auth-usuario-service:5001"
+  PROVEEDORES_URL: "http://proveedores-service:5006/api"
+  VENDEDORES_URL: "http://vendedores-service:5007/v1"
+  PRODUCTOS_URL: "http://productos-service:5008"

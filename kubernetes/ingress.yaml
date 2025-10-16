@@ -20,4 +20,4 @@ spec:
           service:
             name: mediador-web-service
             port:
-              number: 5001
+              number: 5002

@@ -19,7 +19,7 @@ spec:
       - name: productos
         image: 012146976167.dkr.ecr.us-east-2.amazonaws.com/productos:latest
         ports:
-        - containerPort: 5001
+        - containerPort: 5008
         imagePullPolicy: IfNotPresent
         command: ["/bin/sh", "-c"]
         args:

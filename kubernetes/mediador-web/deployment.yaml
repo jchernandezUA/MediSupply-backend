@@ -19,7 +19,7 @@ spec:
       - name: mediador-web
         image: 012146976167.dkr.ecr.us-east-2.amazonaws.com/mediador-web:latest
         ports:
-        - containerPort: 5001
+        - containerPort: 5002
         envFrom:
         - configMapRef:
             name: mediador-web-configmap

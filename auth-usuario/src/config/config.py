@@ -10,8 +10,8 @@ class Config:
     DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
     
     # Configuración del servidor
-    HOST = os.environ.get('HOST', '0.0.0.0')
-    PORT = int(os.environ.get('PORT', 5001))
+    HOST = '0.0.0.0'
+    PORT = 5001
     
     # Configuración de base de datos PostgreSQL
     DB_HOST = os.environ.get('DB_HOST', 'localhost')
