@@ -50,6 +50,8 @@ def login_user(data):
     if len(data['password']) < 6:
         raise AuthServiceError({'error': 'La contraseña debe tener al menos 6 caracteres'}, 400)
 
+    print("URL de autenticación:", f'{config.AUTH_URL}/auth/login')
+
     response = requests.post(f'{config.AUTH_URL}/auth/login', json=data)
 
     return response.json()

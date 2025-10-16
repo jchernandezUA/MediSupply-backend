@@ -178,7 +178,7 @@ Authorization: Bearer <access_token>
    ```
 
 5. Configurar base de datos PostgreSQL:
-   - Crear base de datos: `medsupply`
+   - Crear base de datos: `medisupply`
    - Configurar variables de entorno (ver sección Variables de Entorno)
 
 6. Ejecutar la aplicación:
@@ -227,7 +227,7 @@ docker build -t auth-usuario .
 ```bash
 docker run -p 5001:5001 \
   -e DB_HOST=localhost \
-  -e DB_NAME=medsupply \
+  -e DB_NAME=medisupply \
   -e DB_USER=postgres \
   -e DB_PASSWORD=password \
   auth-usuario
@@ -240,7 +240,7 @@ services:
   postgres:
     image: postgres:15
     environment:
-      POSTGRES_DB: medsupply
+      POSTGRES_DB: medisupply
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     ports:
@@ -254,7 +254,7 @@ services:
       - "5001:5001"
     environment:
       DB_HOST: postgres
-      DB_NAME: medsupply
+      DB_NAME: medisupply
       DB_USER: postgres
       DB_PASSWORD: password
     depends_on:
@@ -273,7 +273,7 @@ volumes:
 - `JWT_SECRET_KEY`: Clave secreta para JWT
 - `DB_HOST`: Host de PostgreSQL (default: localhost)
 - `DB_PORT`: Puerto de PostgreSQL (default: 5432)
-- `DB_NAME`: Nombre de la base de datos (default: medsupply)
+- `DB_NAME`: Nombre de la base de datos (default: medisupply)
 - `DB_USER`: Usuario de PostgreSQL (default: postgres)
 - `DB_PASSWORD`: Contraseña de PostgreSQL (default: password)
 

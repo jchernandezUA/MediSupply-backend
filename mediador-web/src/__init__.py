@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from src.config.config import Config
 from src.blueprints.health import health_bp
@@ -11,8 +12,19 @@ def create_app(config_class=Config):
     Factory function para crear la aplicación Flask
     """
     app = Flask(__name__)
+
+    CORS(app, resources={
+        r"/*": {
+            "origins": "https://d2rz3b4ejfic21.cloudfront.net",
+            "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization"],
+            "expose_headers": ["Content-Type", "Authorization"],
+            "supports_credentials": True,
+            "max_age": 3600
+        }
+    })
     app.config.from_object(config_class)
-    
+
     # Inicializar JWT
     jwt = JWTManager(app)
     
@@ -21,5 +33,5 @@ def create_app(config_class=Config):
     app.register_blueprint(auth_bp)
     app.register_blueprint(proveedor_bp)
     app.register_blueprint(vendedores_bp)
-    
+
     return app
