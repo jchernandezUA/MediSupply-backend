@@ -79,4 +79,125 @@ def crear_producto_externo(datos_producto, files, user_id):
     return datos_respuesta
         
 
+def procesar_producto_batch(file_storage, user_id):
+    """
+    Procesa un archivo CSV con productos, valida cada fila según las mismas reglas
+    que crear_producto_externo y retorna un resumen con errores por fila.
+
+    Args:
+        file_storage: objeto FileStorage de Flask (archivo CSV).
+        user_id: id del usuario que ejecuta la carga.
+
+    Returns:
+        dict: resumen con conteos y detalles de errores.
+    """
+    import csv
+    from io import StringIO, TextIOWrapper
+    from datetime import datetime
+
+    if not file_storage:
+        raise ProductoServiceError({'error': 'No se proporcionó archivo'}, 400)
+
+    # leer CSV
+    try:
+        stream = TextIOWrapper(file_storage.stream, encoding='utf-8')
+        reader = csv.DictReader(stream)
+    except Exception as e:
+        current_app.logger.error(f"Error leyendo CSV: {str(e)}")
+        raise ProductoServiceError({'error': 'Error leyendo el archivo CSV'}, 400)
+
+    required_fields = [
+        'nombre',
+        'codigo_sku',
+        'precio_unitario',
+        'condiciones_almacenamiento',
+        'fecha_vencimiento',
+        'certificaciones'
+    ]
+
+    total = 0
+    errors = []
+    successful = 0
+    skus_seen = set()
+    valid_rows = []
+
+    def validate_row(idx, row):
+        row_errors = []
+        missing = [f for f in required_fields if not (row.get(f) and str(row.get(f)).strip())]
+        if missing:
+            row_errors.append(f"Campos faltantes: {', '.join(missing)}")
+
+        sku = (row.get('codigo_sku') or '').strip()
+        if sku:
+            if sku in skus_seen:
+                row_errors.append('SKU duplicado en archivo')
+            else:
+                skus_seen.add(sku)
+
+        precio = (row.get('precio_unitario') or '').strip()
+        if precio:
+            try:
+                float(precio)
+            except Exception:
+                row_errors.append('Precio inválido')
+
+        fecha = (row.get('fecha_vencimiento') or '').strip()
+        if fecha:
+            try:
+                datetime.fromisoformat(fecha)
+            except Exception:
+                row_errors.append('Fecha inválida')
+
+        return row_errors
+
+    for idx, row in enumerate(reader, start=1):
+        total += 1
+        row_errors = validate_row(idx, row)
+        if row_errors:
+            errors.append({'fila': idx, 'errors': row_errors, 'row': row})
+        else:
+            successful += 1
+            # normalize row: strip values
+            normalized = {k: (v.strip() if isinstance(v, str) else v) for k, v in row.items()}
+            valid_rows.append(normalized)
+
+    result = {
+        'total': total,
+        'successful': successful,
+        'failed': len(errors),
+        'errors': errors,
+        'valid_rows': valid_rows
+    }
+    return result
+
+
+def enviar_batch_productos(file_storage, user_id):
+    """
+    Envía el archivo CSV original al microservicio de productos como multipart/form-data.
+    Retorna la respuesta del backend o lanza ProductoServiceError en caso de fallo.
+    """
+    if not file_storage:
+        raise ProductoServiceError({'error': 'No hay archivo para enviar'}, 400)
+
+    url = config.PRODUCTO_URL + '/api/productos/batch'
+    headers = {}
+    token = os.environ.get('PRODUCTOS_SERVICE_TOKEN')
+    if token:
+        headers['Authorization'] = f'Bearer {token}'
+
+    # prepare file tuple: (filename, stream, content_type)
+    content_type = 'text/csv'
+    files = {'file': (file_storage.filename, file_storage.stream, content_type)}
+    try:
+        resp = requests.post(url, files=files, headers=headers, timeout=120)
+        resp.raise_for_status()
+        try:
+            return resp.json()
+        except Exception:
+            return {'status_code': resp.status_code}
+    except requests.exceptions.RequestException as e:
+        current_app.logger.error(f"Error enviando archivo al servicio de productos: {str(e)}")
+        raise ProductoServiceError({'error': 'Error enviando archivo al servicio de productos'}, 502)
+
+
 

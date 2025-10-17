@@ -1,5 +1,6 @@
 import pytest
 from werkzeug.datastructures import ImmutableMultiDict
+from flask import Flask
 from src.services.productos import crear_producto_externo, ProductoServiceError
 
 @pytest.fixture
@@ -92,3 +93,72 @@ def test_error_microservicio_sin_json(monkeypatch, fake_config, fake_requests_po
         crear_producto_externo(datos, files, 'u')
     assert e.value.status_code == 500
     assert e.value.message['codigo'] == 'ERROR_INESPERADO'
+
+
+def make_file(csv_text, name='test.csv'):
+    import io
+    class F:
+        def __init__(self, b, name):
+            self.filename = name
+            self.stream = io.BytesIO(b)
+            self.mimetype = 'text/csv'
+    return F(csv_text.encode('utf-8'), name)
+
+
+def test_procesar_batch_no_file():
+    from src.services.productos import procesar_producto_batch
+    with pytest.raises(ProductoServiceError) as e:
+        procesar_producto_batch(None, 'u')
+    assert e.value.status_code == 400
+
+
+def test_procesar_batch_missing_fields_and_duplicates():
+    from src.services.productos import procesar_producto_batch
+    # CSV with missing fields and duplicate SKU and invalid price/date
+    csv = """nombre,codigo_sku,precio_unitario,condiciones_almacenamiento,fecha_vencimiento,certificaciones
+Prod1,SKU1,10.5,Seco,2025-12-31,cert
+Prod2,SKU1,abc,Frio,not-a-date,cert
+Prod3,,15,Seco,2025-11-30,cert
+"""
+    f = make_file(csv)
+    resumen = procesar_producto_batch(f, 'u')
+    assert resumen['total'] == 3
+    assert resumen['failed'] >= 2
+    # ensure errors mention SKU duplicado and Precio inválido and Campos faltantes
+    all_errors = ''.join([e['errors'][0] for e in resumen['errors']])
+    assert 'SKU duplicado' in all_errors or 'SKU duplicado en archivo' in all_errors
+    assert any('Precio inválido' in ''.join(err['errors']) for err in resumen['errors'])
+    assert any('Campos faltantes' in ''.join(err['errors']) for err in resumen['errors'])
+
+
+def test_enviar_batch_productos_success(monkeypatch, fake_config):
+    from src.services.productos import enviar_batch_productos
+    f = make_file('nombre,codigo_sku\nA,1\n')
+    class R:
+        status_code = 200
+        def json(self):
+            return {'ok': True}
+        def raise_for_status(self):
+            return None
+    def fake_post(url, files=None, headers=None, timeout=None):
+        assert 'file' in files
+        return R()
+    monkeypatch.setattr('src.services.productos.requests.post', fake_post)
+    app = Flask(__name__)
+    with app.app_context():
+        res = enviar_batch_productos(f, 'u')
+    assert res == {'ok': True}
+
+
+def test_enviar_batch_productos_failure(monkeypatch, fake_config):
+    from src.services.productos import enviar_batch_productos
+    import requests
+    f = make_file('nombre\n')
+    def fake_post_fail(*a, **kw):
+        raise requests.exceptions.RequestException('fail')
+    monkeypatch.setattr('src.services.productos.requests.post', fake_post_fail)
+    app = Flask(__name__)
+    with app.app_context():
+        with pytest.raises(ProductoServiceError) as e:
+            enviar_batch_productos(f, 'u')
+    assert e.value.status_code == 502
