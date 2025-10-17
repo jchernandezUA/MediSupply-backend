@@ -8,11 +8,38 @@ bp_asignaciones = Blueprint("asignaciones", __name__)
 def post_asignacion(v_id: str):
     payload = request.get_json(force=True, silent=True) or {}
     payload["vendedorId"] = v_id
+    # Convertir fecha string a objeto date si viene como string
+    if "vigenteDesde" in payload and isinstance(payload["vigenteDesde"], str):
+        payload["vigenteDesde"] = date.fromisoformat(payload["vigenteDesde"])
+    if "vigenteHasta" in payload and isinstance(payload["vigenteHasta"], str):
+        payload["vigenteHasta"] = date.fromisoformat(payload["vigenteHasta"])
+    data = crear_asignacion(payload)
+    return jsonify(data), 201
+
+@bp_asignaciones.post("/asignaciones")
+def post_asignacion_directo():
+    """Ruta alternativa para crear asignación con vendedorId en el body"""
+    payload = request.get_json(force=True, silent=True) or {}
+    # Convertir fecha string a objeto date si viene como string
+    if "vigenteDesde" in payload and isinstance(payload["vigenteDesde"], str):
+        payload["vigenteDesde"] = date.fromisoformat(payload["vigenteDesde"])
+    if "vigenteHasta" in payload and isinstance(payload["vigenteHasta"], str):
+        payload["vigenteHasta"] = date.fromisoformat(payload["vigenteHasta"])
     data = crear_asignacion(payload)
     return jsonify(data), 201
 
 @bp_asignaciones.patch("/asignaciones/<string:asign_id>/cerrar")
 def patch_cerrar_asignacion(asign_id: str):
+    body = request.get_json(force=True, silent=True) or {}
+    hasta = body.get("vigenteHasta")
+    # admite ISO YYYY-MM-DD, si falta usa hoy
+    hasta_fecha = date.fromisoformat(hasta) if hasta else date.today()
+    data = cerrar_asignacion(asign_id, hasta_fecha)
+    return jsonify(data), 200
+
+@bp_asignaciones.patch("/asignaciones/<string:asign_id>")
+def patch_asignacion(asign_id: str):
+    """Ruta alternativa para cerrar asignación"""
     body = request.get_json(force=True, silent=True) or {}
     hasta = body.get("vigenteHasta")
     # admite ISO YYYY-MM-DD, si falta usa hoy
