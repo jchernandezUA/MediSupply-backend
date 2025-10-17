@@ -10,13 +10,13 @@ class Config:
     DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
     
     # Configuración del servidor
-    HOST = os.environ.get('HOST', '0.0.0.0')
-    PORT = int(os.environ.get('PORT', 5001))
+    HOST = '0.0.0.0'
+    PORT = 5001
     
     # Configuración de base de datos PostgreSQL
     DB_HOST = os.environ.get('DB_HOST', 'localhost')
     DB_PORT = os.environ.get('DB_PORT', '5432')
-    DB_NAME = os.environ.get('DB_NAME', 'medsupply')
+    DB_NAME = os.environ.get('DB_NAME', 'medisupply')
     DB_USER = os.environ.get('DB_USER', 'postgres')
     DB_PASSWORD = os.environ.get('DB_PASSWORD', 'password')
     

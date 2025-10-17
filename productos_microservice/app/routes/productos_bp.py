@@ -76,7 +76,8 @@ def registrar_producto():
         
         return jsonify(respuesta), 201
         
-    except RequestEntityTooLarge:
+    except RequestEntityTooLarge as e:
+        print(e.args[0])
         return jsonify({
             "error": "El archivo excede el tamaño máximo permitido de 5MB",
             "codigo": "ARCHIVO_MUY_GRANDE",
@@ -84,12 +85,15 @@ def registrar_producto():
         }), 413
         
     except ConflictError as e:
+        print(e.args[0])
         return jsonify(e.args[0]), 409
         
     except ValueError as e:
+        print(e.args[0])
         return jsonify(e.args[0]), 400
         
     except Exception as e:
+        print(e.args[0])
         db.session.rollback()
         return jsonify({
             "error": "Error interno del servidor",
