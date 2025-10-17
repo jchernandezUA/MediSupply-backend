@@ -5,10 +5,12 @@ from src.services.vendedores import crear_vendedor_externo, VendedorServiceError
 from flask import Flask
 
 valid_vendedor_data = {
-    'identificacion': '123456789',
-    'nombre': 'Juan Perez',
-    'zona': 'Norte',
-    'estado': 'Activo'
+    'nombre': 'Juan',
+    'apellidos': 'Perez',
+    'correo_electronico': 'juan.perez@example.com',
+    'numero_celular': '1234567890',
+    'telefono': '0987654321',
+    'pais_o_zona_de_asignacion': 'Norte'
 }
 
 @pytest.fixture
@@ -26,12 +28,12 @@ def provide_app_context(app):
 def test_crear_vendedor_externo_exito(mock_post):
     mock_response = MagicMock()
     mock_response.status_code = 201
-    mock_response.json.return_value = {'id': 'vendedor1', 'nombre': 'Juan Perez'}
+    mock_response.json.return_value = {'id': 'vendedor1', 'nombre': 'Juan'}
     mock_response.raise_for_status.return_value = None
     mock_post.return_value = mock_response
 
     result = crear_vendedor_externo(valid_vendedor_data)
-    assert result['nombre'] == 'Juan Perez'
+    assert result['nombre'] == 'Juan'
     mock_post.assert_called_once_with(
         'http://localhost:5007/v1/vendedores',
         json=valid_vendedor_data,
@@ -46,11 +48,11 @@ def test_crear_vendedor_externo_sin_datos():
 
 def test_crear_vendedor_externo_campos_faltantes():
     data = valid_vendedor_data.copy()
-    del data['zona']
+    del data['correo_electronico']
     with pytest.raises(VendedorServiceError) as excinfo:
         crear_vendedor_externo(data)
     assert excinfo.value.status_code == 400
-    assert 'zona' in str(excinfo.value.message).lower()
+    assert 'correo_electronico' in str(excinfo.value.message)
 
 @patch('src.services.vendedores.requests.post')
 def test_crear_vendedor_externo_http_error(mock_post):

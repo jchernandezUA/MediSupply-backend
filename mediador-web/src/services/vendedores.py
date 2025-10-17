@@ -26,7 +26,7 @@ def crear_vendedor_externo(datos_vendedor):
         raise VendedorServiceError({'error': 'No se proporcionaron datos'}, 400)
 
     # --- Validación de datos de entrada ---
-    required_fields = ['identificacion', 'nombre', 'zona', 'estado']
+    required_fields = ['nombre', 'apellidos', 'correo_electronico', 'numero_celular', 'telefono']
     missing_fields = [field for field in required_fields if not datos_vendedor.get(field)]
     if missing_fields:
         raise VendedorServiceError({'error': f"Campos faltantes: {', '.join(missing_fields)}"}, 400)
