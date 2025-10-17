@@ -405,3 +405,192 @@ class CSVProductoService:
             db.session.rollback()
         
         return resultados
+    
+    @staticmethod
+    def procesar_csv_desde_contenido(
+        contenido_csv: str, 
+        usuario_importacion: str = None,
+        callback_progreso=None
+    ) -> Dict[str, Any]:
+        """
+        Procesa un CSV desde contenido string (para procesamiento asíncrono)
+        
+        Args:
+            contenido_csv: Contenido del archivo CSV como string
+            usuario_importacion: Usuario que realiza la importación
+            callback_progreso: Función callback para actualizar progreso
+                               callback(fila_actual, total_filas, exitosos, fallidos)
+            
+        Returns:
+            Diccionario con el resultado de la importación
+        """
+        try:
+            # Leer CSV desde string
+            stream = io.StringIO(contenido_csv, newline=None)
+            csv_reader = csv.DictReader(stream)
+            
+            # Validar columnas
+            if not csv_reader.fieldnames:
+                raise CSVImportError({
+                    "error": "El archivo CSV está vacío o no tiene encabezados",
+                    "codigo": "CSV_VACIO"
+                })
+            
+            columnas_faltantes = set(CSVProductoService.COLUMNAS_REQUERIDAS) - set(csv_reader.fieldnames)
+            if columnas_faltantes:
+                raise CSVImportError({
+                    "error": "El CSV no contiene todas las columnas requeridas",
+                    "codigo": "COLUMNAS_FALTANTES",
+                    "columnas_faltantes": list(columnas_faltantes),
+                    "columnas_requeridas": CSVProductoService.COLUMNAS_REQUERIDAS
+                })
+            
+            # Leer todas las filas
+            productos_data = []
+            for idx, row in enumerate(csv_reader, start=2):
+                row_limpia = {k: v.strip() if v else None for k, v in row.items()}
+                row_limpia['_fila'] = idx
+                productos_data.append(row_limpia)
+            
+            if not productos_data:
+                raise CSVImportError({
+                    "error": "El archivo CSV no contiene filas de datos",
+                    "codigo": "CSV_SIN_DATOS"
+                })
+            
+            # Preparar resultados
+            resultados = {
+                "total_filas": len(productos_data),
+                "exitosos": 0,
+                "fallidos": 0,
+                "detalles_exitosos": [],
+                "detalles_errores": [],
+                "resumen": {}
+            }
+            
+            # Procesar por lotes para mejor rendimiento
+            BATCH_SIZE = 50
+            total_procesadas = 0
+            
+            for i in range(0, len(productos_data), BATCH_SIZE):
+                batch = productos_data[i:i + BATCH_SIZE]
+                
+                for producto_data in batch:
+                    fila = producto_data['_fila']
+                    sku = producto_data.get('codigo_sku', 'N/A')
+                    
+                    try:
+                        # Validar datos
+                        datos_validados = CSVProductoService.validar_producto_csv(producto_data)
+                        
+                        # Sobrescribir usuario_registro si se proporciona
+                        if usuario_importacion:
+                            datos_validados['usuario_registro'] = usuario_importacion
+                        
+                        # Verificar SKU duplicado
+                        if Producto.query.filter_by(codigo_sku=sku).first():
+                            resultados['fallidos'] += 1
+                            resultados['detalles_errores'].append({
+                                "fila": fila,
+                                "sku": sku,
+                                "error": f"Ya existe un producto con el SKU {sku}",
+                                "codigo": "SKU_DUPLICADO"
+                            })
+                            continue
+                        
+                        # Crear producto
+                        producto = Producto(
+                            nombre=datos_validados['nombre'],
+                            codigo_sku=datos_validados['codigo_sku'],
+                            categoria=datos_validados['categoria'],
+                            precio_unitario=datos_validados['precio_unitario'],
+                            condiciones_almacenamiento=datos_validados['condiciones_almacenamiento'],
+                            fecha_vencimiento=datos_validados['fecha_vencimiento'],
+                            proveedor_id=datos_validados['proveedor_id'],
+                            usuario_registro=datos_validados['usuario_registro'],
+                            estado=datos_validados['estado']
+                        )
+                        
+                        db.session.add(producto)
+                        db.session.flush()
+                        
+                        # Crear certificación si hay URL
+                        url_certificacion = datos_validados.get('url_certificacion', '').strip()
+                        if url_certificacion:
+                            certificacion = CertificacionProducto(
+                                producto_id=producto.id,
+                                tipo_certificacion=datos_validados.get('tipo_certificacion', 'INVIMA'),
+                                nombre_archivo=f"certificacion_url_{producto.codigo_sku}",
+                                ruta_archivo=url_certificacion,
+                                tamaño_archivo=0,
+                                fecha_vencimiento_cert=datos_validados['fecha_vencimiento_cert']
+                            )
+                            db.session.add(certificacion)
+                        
+                        resultados['exitosos'] += 1
+                        detalle_exitoso = {
+                            "fila": fila,
+                            "sku": sku,
+                            "nombre": producto.nombre,
+                            "id": producto.id,
+                            "tiene_certificacion": bool(url_certificacion)
+                        }
+                        
+                        if url_certificacion:
+                            detalle_exitoso["certificacion"] = {
+                                "tipo": datos_validados.get('tipo_certificacion', 'INVIMA'),
+                                "url": url_certificacion,
+                                "fecha_vencimiento": datos_validados['fecha_vencimiento_cert'].strftime("%d/%m/%Y")
+                            }
+                        
+                        resultados['detalles_exitosos'].append(detalle_exitoso)
+                        
+                    except ValueError as e:
+                        resultados['fallidos'] += 1
+                        error_data = e.args[0] if e.args and isinstance(e.args[0], dict) else {"error": str(e)}
+                        error_data['fila'] = fila
+                        error_data['sku'] = sku
+                        resultados['detalles_errores'].append(error_data)
+                    
+                    except Exception as e:
+                        resultados['fallidos'] += 1
+                        resultados['detalles_errores'].append({
+                            "fila": fila,
+                            "sku": sku,
+                            "error": f"Error inesperado: {str(e)}",
+                            "codigo": "ERROR_INESPERADO"
+                        })
+                
+                # Commit del lote
+                if resultados['exitosos'] > total_procesadas:
+                    db.session.commit()
+                    total_procesadas = resultados['exitosos']
+                    
+                    # Llamar callback de progreso si existe
+                    if callback_progreso:
+                        callback_progreso(
+                            min(i + BATCH_SIZE, len(productos_data)),
+                            len(productos_data),
+                            resultados['exitosos'],
+                            resultados['fallidos']
+                        )
+            
+            # Preparar resumen
+            resultados['resumen'] = {
+                'total_filas': resultados['total_filas'],
+                'exitosos': resultados['exitosos'],
+                'fallidos': resultados['fallidos']
+            }
+            
+            return resultados
+            
+        except CSVImportError:
+            db.session.rollback()
+            raise
+        except Exception as e:
+            db.session.rollback()
+            raise CSVImportError({
+                "error": "Error procesando CSV",
+                "codigo": "ERROR_PROCESAMIENTO",
+                "detalles": str(e)
+            })
