@@ -1,0 +1,6 @@
+nombre,codigo_sku,categoria,precio_unitario,condiciones_almacenamiento,fecha_vencimiento,proveedor_id,usuario_registro,estado,url_certificacion,tipo_certificacion,fecha_vencimiento_cert
+Paracetamol 500mg,SKU-MED-001,medicamento,12.50,Temperatura ambiente (15-25°C) Mantener en lugar seco,31/12/2025,1,admin,Activo,https://certificados.invima.gov.co/paracetamol-500mg.pdf,INVIMA,31/12/2025
+Jeringa 10ml,SKU-INS-002,insumo,2.75,Temperatura ambiente. Mantener en empaque original,30/06/2026,2,admin,Activo,https://certificados.fda.gov/jeringa-10ml-cert.pdf,FDA,30/06/2026
+Reactivo PCR Kit,SKU-REA-003,reactivo,125.00,Refrigeración (2-8°C) No congelar,15/03/2025,1,admin,Activo,https://certificados.ema.europa.eu/reactivo-pcr.pdf,EMA,15/03/2025
+Monitor Signos Vitales,SKU-DIS-004,dispositivo,1500.00,Temperatura ambiente Evitar humedad,31/12/2027,3,admin,Activo,,INVIMA,31/12/2027
+Ibuprofeno 400mg,SKU-MED-005,medicamento,8.99,Temperatura ambiente (15-25°C),28/02/2026,1,sistema_csv,Activo,https://certificados.invima.gov.co/ibuprofeno-400mg.pdf,INVIMA,28/02/2026

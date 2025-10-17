@@ -1,0 +1,6 @@
+nombre,codigo_sku,categoria,precio_unitario,condiciones_almacenamiento,fecha_vencimiento,proveedor_id,usuario_registro,estado,url_certificacion,tipo_certificacion,fecha_vencimiento_cert
+Aspirina 100mg,SKU-MED-006,medicamento,8.50,Temperatura ambiente Lugar seco.,15/09/2025,1,admin,Activo,https://certificados.invima.gov.co/aspirina-100mg.pdf,INVIMA,15/09/2025
+Alcohol 70%,SKU-INS-007,insumo,3.25,Temperatura ambiente Mantener cerrado.,30/12/2025,2,admin,Activo,,INVIMA,30/12/2025
+Termómetro Digital,SKU-DIS-008,dispositivo,45.90,Temperatura ambiente Proteger de golpes.,31/12/2026,3,admin,Activo,https://certificados.fda.gov/termometro-digital.pdf,FDA,31/12/2026
+Suero Fisiológico,SKU-MED-009,medicamento,5.75,Temperatura ambiente Mantener estéril.,20/08/2025,1,sistema_csv,Activo,https://certificados.invima.gov.co/suero-fisiologico.pdf,INVIMA,20/08/2025
+Guantes Látex,SKU-INS-010,insumo,12.00,Lugar seco Evitar exposición solar directa.,15/11/2025,2,admin,Activo,,INVIMA,15/11/2025
