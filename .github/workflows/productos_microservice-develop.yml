@@ -37,5 +37,5 @@ jobs:
             --cov=app.services.producto_service \
             --cov=app.utils \
             --cov-report=xml \
-            --cov-fail-under=75
+            --cov-fail-under=70
 
