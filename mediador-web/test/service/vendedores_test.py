@@ -7,10 +7,9 @@ from flask import Flask
 valid_vendedor_data = {
     'nombre': 'Juan',
     'apellidos': 'Perez',
-    'correo_electronico': 'juan.perez@example.com',
-    'numero_celular': '1234567890',
+    'correo': 'juan.perez@example.com',
     'telefono': '0987654321',
-    'pais_o_zona_de_asignacion': 'Norte'
+    'zona': 'Norte'
 }
 
 @pytest.fixture
@@ -48,11 +47,11 @@ def test_crear_vendedor_externo_sin_datos():
 
 def test_crear_vendedor_externo_campos_faltantes():
     data = valid_vendedor_data.copy()
-    del data['correo_electronico']
+    del data['correo']
     with pytest.raises(VendedorServiceError) as excinfo:
         crear_vendedor_externo(data)
     assert excinfo.value.status_code == 400
-    assert 'correo_electronico' in str(excinfo.value.message)
+    assert 'correo' in str(excinfo.value.message)
 
 @patch('src.services.vendedores.requests.post')
 def test_crear_vendedor_externo_http_error(mock_post):
