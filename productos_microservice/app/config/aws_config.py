@@ -14,12 +14,13 @@ class AWSConfig:
     
     # SQS Configuration
     SQS_REGION = os.getenv('AWS_REGION', 'us-east-1')
+    SQS_QUEUE_URL = os.getenv('AWS_SQS_QUEUE_URL')
     SQS_QUEUE_NAME = os.getenv('SQS_QUEUE_NAME', 'productos-importacion-queue.fifo')
     SQS_DLQ_NAME = os.getenv('SQS_DLQ_NAME', 'productos-importacion-dlq')
     
     # S3 Configuration
-    S3_BUCKET_CSV = os.getenv('S3_BUCKET_CSV', 'medisupply-csv-imports')
-    S3_REGION = os.getenv('S3_REGION', 'us-east-1')
+    S3_BUCKET_CSV = os.getenv('AWS_S3_BUCKET_NAME', os.getenv('S3_BUCKET_CSV', 'medisupply-csv-imports'))
+    S3_REGION = os.getenv('AWS_REGION', os.getenv('S3_REGION', 'us-east-1'))
     
     # AWS Credentials (mejor usar IAM roles en producción)
     AWS_ACCESS_KEY = os.getenv('AWS_ACCESS_KEY_ID')

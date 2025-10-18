@@ -48,8 +48,8 @@ class ImportJob(db.Model):
     fecha_inicio_proceso = db.Column(db.DateTime, nullable=True)
     fecha_finalizacion = db.Column(db.DateTime, nullable=True)
     
-    # Metadata adicional
-    metadata = db.Column(db.JSON, nullable=True)  # Para almacenar info adicional
+    # Metadata adicional (nota: 'metadata' está reservado por SQLAlchemy)
+    extra_metadata = db.Column(db.JSON, nullable=True)  # Para almacenar info adicional
     
     def __repr__(self):
         return f"<ImportJob {self.id} - {self.estado}>"
@@ -147,8 +147,8 @@ class ImportJob(db.Model):
         self.progreso = 100.0
         self.fecha_finalizacion = datetime.utcnow()
         if mensaje:
-            self.metadata = self.metadata or {}
-            self.metadata['mensaje_finalizacion'] = mensaje
+            self.extra_metadata = self.extra_metadata or {}
+            self.extra_metadata['mensaje_finalizacion'] = mensaje
     
     def marcar_como_fallido(self, error_mensaje):
         """

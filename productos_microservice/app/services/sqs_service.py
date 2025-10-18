@@ -102,13 +102,14 @@ class SQSService:
             raise Exception(f"Error enviando mensaje: {str(e)}")
     
     @staticmethod
-    def recibir_mensajes(max_mensajes=1, wait_time=20):
+    def recibir_mensajes(max_messages=1, wait_time_seconds=20, visibility_timeout=300):
         """
         Recibe mensajes de la cola SQS (long polling)
         
         Args:
-            max_mensajes: Número máximo de mensajes a recibir (1-10)
-            wait_time: Tiempo de espera en segundos (0-20, long polling)
+            max_messages: Número máximo de mensajes a recibir (1-10)
+            wait_time_seconds: Tiempo de espera en segundos (0-20, long polling)
+            visibility_timeout: Tiempo de visibilidad del mensaje en segundos
             
         Returns:
             list: Lista de mensajes recibidos
@@ -122,16 +123,17 @@ class SQSService:
                 return []
             
             # Validar parámetros
-            max_mensajes = min(max(1, max_mensajes), 10)
-            wait_time = min(max(0, wait_time), 20)
+            max_messages = min(max(1, max_messages), 10)
+            wait_time_seconds = min(max(0, wait_time_seconds), 20)
+            visibility_timeout = min(max(30, visibility_timeout), 43200)  # Min 30s, max 12h
             
             response = sqs.receive_message(
                 QueueUrl=queue_url,
-                MaxNumberOfMessages=max_mensajes,
-                WaitTimeSeconds=wait_time,
+                MaxNumberOfMessages=max_messages,
+                WaitTimeSeconds=wait_time_seconds,
                 MessageAttributeNames=['All'],
                 AttributeNames=['All'],
-                VisibilityTimeout=300  # 5 minutos inicial
+                VisibilityTimeout=visibility_timeout
             )
             
             mensajes = response.get('Messages', [])

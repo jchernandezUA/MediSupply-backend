@@ -125,22 +125,39 @@ def procesar_mensaje(app, mensaje: dict, sqs_service: SQSService, s3_service: S3
             
             resultado = csv_service.procesar_csv_desde_contenido(
                 contenido_csv=contenido_csv,
-                usuario_registro=usuario_registro,
+                usuario_importacion=usuario_registro,
                 callback_progreso=actualizar_progreso
             )
             
             # 6. Actualizar el job con los resultados finales
-            if resultado['estado'] == 'completado':
-                job.marcar_como_completado(
-                    exitosos=resultado['exitosos'],
-                    fallidos=resultado['fallidos'],
-                    errores=resultado['detalles_errores']
-                )
-                logger.info(f"✅ Job {job_id} COMPLETADO: {resultado['exitosos']} exitosos, {resultado['fallidos']} fallidos")
-            else:
-                error_msg = resultado.get('error', 'Error desconocido durante el procesamiento')
-                job.marcar_como_fallido(error_msg)
-                logger.error(f"❌ Job {job_id} FALLIDO: {error_msg}")
+            exitosos = resultado.get('exitosos', 0)
+            fallidos = resultado.get('fallidos', 0)
+            detalles_errores = resultado.get('detalles_errores', [])
+            
+            # Actualizar progreso y marcar como completado
+            total_procesados = exitosos + fallidos
+            job.actualizar_progreso(
+                filas_procesadas=total_procesados,
+                exitosos=exitosos,
+                fallidos=fallidos
+            )
+            
+            # ✅ Guardar errores de validación con formato estructurado
+            if detalles_errores:
+                # Limitar a 100 errores para no saturar la BD
+                errores_limitados = detalles_errores[:100]
+                job.detalles_errores = {
+                    'total_errores': fallidos,
+                    'errores_capturados': len(errores_limitados),
+                    'nota': 'Mostrando primeros 100 errores' if fallidos > 100 else 'Todos los errores capturados',
+                    'errores': errores_limitados
+                }
+                logger.info(f"💾 Guardados {len(errores_limitados)} errores de validación (de {fallidos} totales)")
+            
+            job.marcar_como_completado(
+                mensaje=f"{exitosos} exitosos, {fallidos} fallidos"
+            )
+            logger.info(f"✅ Job {job_id} COMPLETADO: {exitosos} exitosos, {fallidos} fallidos")
             
             db.session.commit()
             

@@ -513,6 +513,14 @@ def obtener_status_importacion(job_id):
             respuesta['mensaje'] = f"Procesando... {respuesta['progreso']}% completado"
         elif job.estado == 'COMPLETADO':
             respuesta['mensaje'] = "Importación completada exitosamente"
+            # Agregar resumen de validaciones
+            if job.fallidos > 0:
+                respuesta['validaciones'] = {
+                    'productos_validados_ok': job.exitosos,
+                    'productos_con_errores': job.fallidos,
+                    'tasa_exito': round((job.exitosos / (job.exitosos + job.fallidos)) * 100, 2) if (job.exitosos + job.fallidos) > 0 else 0,
+                    'nota': 'Use ?include_errors=true para ver detalles de errores'
+                }
         elif job.estado == 'FALLIDO':
             respuesta['mensaje'] = "La importación falló"
         
