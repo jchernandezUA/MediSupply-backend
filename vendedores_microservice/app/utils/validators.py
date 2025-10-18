@@ -103,3 +103,33 @@ def pagination_params(page, size, max_size: int = 100) -> tuple[int, int]:
     if s < 1 or s > max_size:
         raise ValidationError(f"size debe estar entre 1 y {max_size}")
     return p, s
+
+
+def is_valid_email(email: str, field_name: str = "correo") -> None:
+    """
+    Valida que el correo electrónico tenga un formato válido.
+    Patrón: texto@dominio.extension
+    """
+    if not email:
+        raise ValidationError(f"'{field_name}' es obligatorio")
+    
+    # Patrón de email simplificado pero efectivo
+    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    
+    if not re.match(email_pattern, email):
+        raise ValidationError(f"'{field_name}' no tiene un formato válido")
+
+
+def is_valid_phone(phone: str, field_name: str = "celular", min_length: int = 10) -> None:
+    """
+    Valida que el número de teléfono/celular tenga al menos min_length dígitos.
+    Permite espacios, guiones y paréntesis, pero debe tener al menos 10 dígitos.
+    """
+    if not phone:
+        raise ValidationError(f"'{field_name}' es obligatorio")
+    
+    # Extraer solo los dígitos
+    digits = re.sub(r'\D', '', phone)
+    
+    if len(digits) < min_length:
+        raise ValidationError(f"'{field_name}' debe tener al menos {min_length} dígitos")

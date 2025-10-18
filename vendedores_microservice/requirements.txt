@@ -8,6 +8,7 @@ pytest-cov
 pytest-mock
 pytest-flask
 python-dotenv
+requests
 psycopg2-binary
 Werkzeug
 SQLAlchemy

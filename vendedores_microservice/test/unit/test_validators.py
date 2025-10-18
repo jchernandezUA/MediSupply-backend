@@ -1,7 +1,8 @@
 import pytest
 from app.utils.validators import (
     require, ensure_types, one_of, length_between, matches_regex,
-    is_uuid, is_period, is_date, positive_int, pagination_params
+    is_uuid, is_period, is_date, positive_int, pagination_params,
+    is_valid_email, is_valid_phone
 )
 from app.utils.errors import ValidationError
 
@@ -49,3 +50,57 @@ def test_positive_int_y_pagination():
     assert (p, s) == (2, 10)
     with pytest.raises(ValidationError):
         pagination_params("x", 10)
+
+def test_is_valid_email_correcto():
+    """Prueba validación de correos válidos."""
+    is_valid_email("usuario@example.com")
+    is_valid_email("test.user@domain.co")
+    is_valid_email("user+tag@company.com")
+    is_valid_email("admin@sub.domain.org")
+
+def test_is_valid_email_incorrecto():
+    """Prueba validación de correos inválidos."""
+    with pytest.raises(ValidationError, match="formato válido"):
+        is_valid_email("sin-arroba.com")
+    
+    with pytest.raises(ValidationError, match="formato válido"):
+        is_valid_email("@sinusuario.com")
+    
+    with pytest.raises(ValidationError, match="formato válido"):
+        is_valid_email("usuario@")
+    
+    with pytest.raises(ValidationError, match="formato válido"):
+        is_valid_email("usuario@dominio")
+    
+    with pytest.raises(ValidationError, match="obligatorio"):
+        is_valid_email("")
+
+def test_is_valid_phone_correcto():
+    """Prueba validación de teléfonos válidos."""
+    is_valid_phone("3001234567")  # 10 dígitos
+    is_valid_phone("300-123-4567")  # Con guiones
+    is_valid_phone("(300) 123-4567")  # Con paréntesis
+    is_valid_phone("300 123 4567")  # Con espacios
+    is_valid_phone("12345678901")  # 11 dígitos
+
+def test_is_valid_phone_incorrecto():
+    """Prueba validación de teléfonos inválidos."""
+    with pytest.raises(ValidationError, match="debe tener al menos 10 dígitos"):
+        is_valid_phone("123")  # Muy corto
+    
+    with pytest.raises(ValidationError, match="debe tener al menos 10 dígitos"):
+        is_valid_phone("123456789")  # 9 dígitos
+    
+    with pytest.raises(ValidationError, match="obligatorio"):
+        is_valid_phone("")
+    
+    with pytest.raises(ValidationError, match="obligatorio"):
+        is_valid_phone(None)
+
+def test_is_valid_phone_con_min_length_personalizado():
+    """Prueba validación de teléfono con longitud mínima personalizada."""
+    is_valid_phone("12345678", field_name="telefono", min_length=8)
+    
+    with pytest.raises(ValidationError, match="debe tener al menos 12 dígitos"):
+        is_valid_phone("12345678901", field_name="telefono", min_length=12)
+
