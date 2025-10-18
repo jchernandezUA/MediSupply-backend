@@ -58,11 +58,11 @@ def crear_proveedor_externo(datos_proveedor, files, user_id):
     else:
         raise ProveedorServiceError({'error': 'No se proporcionaron archivos de certificación', 'codigo': 'ARCHIVOS_FALTANTES'}, 400)
 
-    proveedores_url = os.environ.get('PROVEEDORES_URL', 'http://localhost:5006/api')
+    proveedores_url = os.environ.get('PROVEEDORES_URL', 'http://localhost:5006')
 
     try:
         response = requests.post(
-            f"{proveedores_url}/proveedores",
+            f"{proveedores_url}/api/proveedores",
             data=datos_proveedor.to_dict() if hasattr(datos_proveedor, 'to_dict') else datos_proveedor,
             files=_files
         )
@@ -85,9 +85,9 @@ def crear_proveedor_externo(datos_proveedor, files, user_id):
 
 # Consulta de proveedores desde el microservicio externo
 def consultar_proveedores_externo():
-    proveedores_url = os.environ.get('PROVEEDORES_URL', 'http://localhost:5006/api')
+    proveedores_url = os.environ.get('PROVEEDORES_URL', 'http://localhost:5006')
     try:
-        response = requests.get(f"{proveedores_url}/proveedores")
+        response = requests.get(f"{proveedores_url}/api/proveedores")
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:

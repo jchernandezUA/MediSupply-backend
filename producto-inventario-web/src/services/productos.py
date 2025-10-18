@@ -228,7 +228,7 @@ def enviar_batch_productos(file_storage, user_id):
 
     # prepare file tuple: (filename, stream, content_type)
     content_type = 'text/csv'
-    files = {'file': (file_storage.filename, file_storage.stream, content_type)}
+    files = {'archivo': (file_storage.filename, file_storage.stream, content_type)}
     try:
         resp = requests.post(url, files=files, headers=headers, timeout=120)
     except requests.exceptions.RequestException as e:

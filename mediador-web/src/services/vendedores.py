@@ -26,18 +26,18 @@ def crear_vendedor_externo(datos_vendedor):
         raise VendedorServiceError({'error': 'No se proporcionaron datos'}, 400)
 
     # --- Validación de datos de entrada ---
-    required_fields = ['nombre', 'apellidos', 'correo_electronico', 'numero_celular', 'telefono']
+    required_fields = ['nombre', 'apellidos', 'correo', 'telefono']
     missing_fields = [field for field in required_fields if not datos_vendedor.get(field)]
     if missing_fields:
         raise VendedorServiceError({'error': f"Campos faltantes: {', '.join(missing_fields)}"}, 400)
 
     # --- Fin de la validación ---
 
-    vendedores_url = os.environ.get('VENDEDORES_URL', 'http://localhost:5007/v1')
+    vendedores_url = os.environ.get('VENDEDORES_URL', 'http://localhost:5007')
 
     try:
         response = requests.post(
-            f"{vendedores_url}/vendedores",
+            f"{vendedores_url}/v1/vendedores",
             json=datos_vendedor,
             headers={'Content-Type': 'application/json'},
             timeout=10
