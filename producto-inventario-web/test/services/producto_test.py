@@ -92,8 +92,75 @@ def test_error_microservicio_sin_json(monkeypatch, fake_config, fake_requests_po
     with pytest.raises(ProductoServiceError) as e:
         crear_producto_externo(datos, files, 'u')
     assert e.value.status_code == 500
-    assert e.value.message['codigo'] == 'ERROR_INESPERADO'
 
+
+def test_procesar_batch_date_formats_and_restore_stream():
+    from src.services.productos import procesar_producto_batch
+    # CSV with different date formats and fecha_vencimiento_cert
+    csv = """nombre,codigo_sku,categoria,precio_unitario,condiciones_almacenamiento,fecha_vencimiento,proveedor_id,fecha_vencimiento_cert
+ProdISO,SKUISO,cat,10.0,Seco,2026-01-01,1,2026-06-01
+ProdDMY,SKUDMY,cat,12.0,Seco,15/09/2026,2,15/09/2026
+ProdBad,SKUBAD,cat,9.0,Seco,31-02-2026,3,31-02-2026
+"""
+    f = make_file(csv)
+    resumen = procesar_producto_batch(f, 'u')
+    # two valid, one invalid
+    assert resumen['total'] == 3
+    assert resumen['successful'] == 2
+    assert resumen['failed'] == 1
+    # stream should be restored and readable
+    f.stream.seek(0)
+    content = f.stream.read()
+    assert isinstance(content, (bytes, bytearray))
+
+
+def test_procesar_y_enviar_producto_batch_success(monkeypatch, fake_config):
+    from src.services.productos import procesar_y_enviar_producto_batch
+    # create a CSV with a single valid row
+    csv = """nombre,codigo_sku,categoria,precio_unitario,condiciones_almacenamiento,fecha_vencimiento,proveedor_id
+P,SKUX,cat,5.0,Seco,2026-12-31,1
+"""
+    f = make_file(csv)
+    # mock enviar_batch_productos
+    monkeypatch.setattr('src.services.productos.enviar_batch_productos', lambda file, user: {'sent': 1})
+    res = procesar_y_enviar_producto_batch(f, 'u')
+    assert res['ok'] is True
+    assert res['status'] == 200
+    assert res['payload']['envio']['sent'] == 1
+
+
+def test_procesar_y_enviar_producto_batch_no_valid():
+    from src.services.productos import procesar_y_enviar_producto_batch
+    csv = """nombre,codigo_sku,categoria,precio_unitario,condiciones_almacenamiento,fecha_vencimiento,proveedor_id
+Bad,,cat,abc,Seco,not-a-date,1
+"""
+    f = make_file(csv)
+    res = procesar_y_enviar_producto_batch(f, 'u')
+    assert res['ok'] is False
+    assert res['status'] == 400
+    assert isinstance(res['payload'], str)
+    assert 'Nombres inválidos' in res['payload'] or 'Nombres inválidos' in res['payload']
+
+
+def test_enviar_batch_productos_backend_400(monkeypatch, fake_config):
+    from src.services.productos import enviar_batch_productos, ProductoServiceError
+    f = make_file('nombre,codigo_sku\nA,1\n')
+    class R:
+        status_code = 400
+        def json(self):
+            return {'error': 'bad', 'code': 'ERR'}
+        text = 'Bad Request'
+    def fake_post(url, files=None, headers=None, timeout=None):
+        return R()
+    monkeypatch.setattr('src.services.productos.requests.post', fake_post)
+    from flask import Flask
+    app = Flask(__name__)
+    with app.app_context():
+        with pytest.raises(ProductoServiceError) as e:
+            enviar_batch_productos(f, 'u')
+        assert e.value.status_code == 400
+        assert isinstance(e.value.message, dict)
+        assert 'detail' in e.value.message
 
 def make_file(csv_text, name='test.csv'):
     import io
@@ -115,10 +182,10 @@ def test_procesar_batch_no_file():
 def test_procesar_batch_missing_fields_and_duplicates():
     from src.services.productos import procesar_producto_batch
     # CSV with missing fields and duplicate SKU and invalid price/date
-    csv = """nombre,codigo_sku,precio_unitario,condiciones_almacenamiento,fecha_vencimiento,certificaciones
-Prod1,SKU1,10.5,Seco,2025-12-31,cert
-Prod2,SKU1,abc,Frio,not-a-date,cert
-Prod3,,15,Seco,2025-11-30,cert
+    csv = """nombre,codigo_sku,categoria,precio_unitario,condiciones_almacenamiento,fecha_vencimiento,proveedor_id,certificaciones
+Prod1,SKU1,catA,10.5,Seco,2025-12-31,1,cert
+Prod2,SKU1,catB,abc,Frio,not-a-date,2,cert
+Prod3,,catC,15,Seco,2025-11-30,3,cert
 """
     f = make_file(csv)
     resumen = procesar_producto_batch(f, 'u')

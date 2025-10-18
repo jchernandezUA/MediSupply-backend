@@ -1,8 +1,9 @@
 from flask import Blueprint, request, jsonify, current_app
+import json
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from src.services.productos import ProductoServiceError
 from src.services.productos import crear_producto_externo
-from src.services.productos import procesar_producto_batch, enviar_batch_productos
+from src.services.productos import procesar_producto_batch, enviar_batch_productos, procesar_y_enviar_producto_batch
 
 # Crear el blueprint para producto
 producto_bp = Blueprint('producto', __name__)
@@ -55,19 +56,17 @@ def producto_batch():
             return jsonify({'error': 'No se proporcionó archivo', 'codigo': 'NO_FILE'}), 400
 
         user_id = get_jwt_identity()
-        resumen = procesar_producto_batch(file, user_id)
-
-        # si hay productos válidos, enviarlos al microservicio de productos
-        if resumen.get('successful', 0) > 0:
-            # rewind file stream and enviar el archivo original
-            try:
-                file.stream.seek(0)
-            except Exception:
-                pass
-            envio_result = enviar_batch_productos(file, user_id)
-            resumen['envio'] = envio_result
-
-        return jsonify({'data': resumen}), 200
+        resultado = procesar_y_enviar_producto_batch(file, user_id)
+        if resultado.get('ok'):
+            return jsonify({'data': resultado.get('payload')}), resultado.get('status', 200)
+        else:
+            # payload es un string con el mensaje de error o un dict con detalles
+            payload = resultado.get('payload')
+            if isinstance(payload, dict):
+                # si es dict, devolverlo directamente (ya contiene keys error/codigo)
+                return jsonify(payload), resultado.get('status', 400)
+            else:
+                return jsonify({'error': str(payload), 'codigo': 'VALIDACION_ERROR'}), resultado.get('status', 400)
 
     except ProductoServiceError as e:
         return jsonify(e.message), e.status_code
