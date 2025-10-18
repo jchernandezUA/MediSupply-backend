@@ -38,3 +38,4 @@ jobs:
             --cov=app.utils \
             --cov-report=xml \
             --cov-fail-under=75
+
