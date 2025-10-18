@@ -17,6 +17,21 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Rebase PR branch onto develop
+        # Try to rebase the checked-out branch onto origin/develop. If rebase fails
+        # (conflicts) the step will exit non-zero and the job will fail.
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Ensure we have the latest develop
+          git fetch origin develop:develop
+          echo "Attempting to rebase ${GITHUB_REF##*/} onto origin/develop"
+          git rebase --abort || true
+          git rebase origin/develop
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -28,6 +43,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest pytest-cov
+          pip install pytest-mock
 
       - name: Ejecutar tests con cobertura
         run: |
