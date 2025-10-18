@@ -208,7 +208,7 @@ def test_enviar_batch_productos_success(monkeypatch, fake_config):
         def raise_for_status(self):
             return None
     def fake_post(url, files=None, headers=None, timeout=None):
-        assert 'file' in files
+        assert 'archivo' in files
         return R()
     monkeypatch.setattr('src.services.productos.requests.post', fake_post)
     app = Flask(__name__)

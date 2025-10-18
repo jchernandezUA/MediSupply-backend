@@ -3,6 +3,7 @@ Flask-SQLAlchemy==3.0.5
 Flask-Marshmallow==0.15.0
 marshmallow==3.19.0
 marshmallow-sqlalchemy==0.29.0
+gunicorn==21.2.0
 pytest==7.4.2
 pytest-cov==4.1.0
 pytest-mock==3.11.1

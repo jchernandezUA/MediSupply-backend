@@ -3,6 +3,7 @@ Flask-SQLAlchemy
 Flask-Marshmallow
 marshmallow
 marshmallow-sqlalchemy
+gunicorn==21.2.0
 pytest
 pytest-cov
 pytest-mock

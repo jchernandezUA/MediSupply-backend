@@ -7,7 +7,6 @@ class Vendedor(db.Model):
     nombre = db.Column(db.String(150), nullable=False)
     apellidos = db.Column(db.String(150), nullable=False)
     correo = db.Column(db.String(255), nullable=False, unique=True, index=True)
-    celular = db.Column(db.String(20), nullable=False)
     telefono = db.Column(db.String(20), nullable=True)
     zona = db.Column(db.String(80), nullable=True)  # País o zona de asignación (opcional)
     estado = db.Column(db.String(20), nullable=False, default="activo")

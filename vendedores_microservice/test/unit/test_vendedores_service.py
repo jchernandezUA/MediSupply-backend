@@ -11,14 +11,13 @@ def test_crear_y_obtener_vendedor(app_ctx):
         "nombre": "Juan",
         "apellidos": "Pérez García",
         "correo": "juan.perez@example.com",
-        "celular": "3001234567",
         "telefono": "6015551234",
         "zona": "Norte"
     })
     assert out["nombre"] == "Juan"
     assert out["apellidos"] == "Pérez García"
     assert out["correo"] == "juan.perez@example.com"
-    assert out["celular"] == "3001234567"
+    assert out["telefono"] == "6015551234"
     
     got = obtener_vendedor(out["id"])
     assert got["nombre"] == "Juan"
@@ -30,7 +29,7 @@ def test_correo_unico(app_ctx):
         "nombre": "Ana",
         "apellidos": "López",
         "correo": "ana@example.com",
-        "celular": "3001111111"
+        "telefono": "3001111111"
     })
     
     with pytest.raises(ConflictError, match="Ya existe un vendedor registrado con ese correo"):
@@ -38,7 +37,7 @@ def test_correo_unico(app_ctx):
             "nombre": "María",
             "apellidos": "González",
             "correo": "ana@example.com",  # Correo duplicado
-            "celular": "3002222222"
+            "telefono": "3002222222"
         })
 
 def test_validacion_correo_formato_invalido(app_ctx):
@@ -48,17 +47,17 @@ def test_validacion_correo_formato_invalido(app_ctx):
             "nombre": "Pedro",
             "apellidos": "Ramírez",
             "correo": "correo-invalido",  # Sin @ y dominio
-            "celular": "3003333333"
+            "telefono": "3003333333"
         })
 
-def test_validacion_celular_minimo_10_digitos(app_ctx):
-    """Valida que el celular tenga mínimo 10 dígitos."""
+def test_validacion_telefono_minimo_10_digitos(app_ctx):
+    """Valida que el telefono tenga mínimo 10 dígitos."""
     with pytest.raises(ValidationError, match="debe tener al menos 10 dígitos"):
         crear_vendedor({
             "nombre": "Carlos",
             "apellidos": "Martínez",
             "correo": "carlos@example.com",
-            "celular": "123"  # Muy corto
+            "telefono": "123"  # Muy corto
         })
 
 def test_validaciones_campos_obligatorios(app_ctx):
@@ -68,7 +67,7 @@ def test_validaciones_campos_obligatorios(app_ctx):
         crear_vendedor({
             "apellidos": "González",
             "correo": "test@example.com",
-            "celular": "3001234567"
+            "telefono": "3001234567"
         })
     
     # Falta apellidos
@@ -76,7 +75,7 @@ def test_validaciones_campos_obligatorios(app_ctx):
         crear_vendedor({
             "nombre": "Test",
             "correo": "test@example.com",
-            "celular": "3001234567"
+            "telefono": "3001234567"
         })
     
     # Falta correo
@@ -84,10 +83,10 @@ def test_validaciones_campos_obligatorios(app_ctx):
         crear_vendedor({
             "nombre": "Test",
             "apellidos": "User",
-            "celular": "3001234567"
+            "telefono": "3001234567"
         })
     
-    # Falta celular
+    # Falta telefono
     with pytest.raises(ValidationError, match="Faltan campos obligatorios"):
         crear_vendedor({
             "nombre": "Test",
@@ -101,21 +100,10 @@ def test_zona_opcional(app_ctx):
         "nombre": "Luis",
         "apellidos": "Hernández",
         "correo": "luis@example.com",
-        "celular": "3004444444"
+        "telefono": "3004444444"
         # zona no proporcionada
     })
     assert out["zona"] is None
-
-def test_telefono_opcional(app_ctx):
-    """Verifica que el campo teléfono sea opcional."""
-    out = crear_vendedor({
-        "nombre": "María",
-        "apellidos": "Silva",
-        "correo": "maria@example.com",
-        "celular": "3005555555"
-        # telefono no proporcionado
-    })
-    assert out["telefono"] is None
 
 def test_actualizar_vendedor(app_ctx):
     """Prueba actualizar los datos de un vendedor."""
@@ -123,7 +111,7 @@ def test_actualizar_vendedor(app_ctx):
         "nombre": "Roberto",
         "apellidos": "Gómez",
         "correo": "roberto@example.com",
-        "celular": "3006666666",
+        "telefono": "3006666666",
         "zona": "Norte"
     })
     
@@ -144,14 +132,14 @@ def test_actualizar_correo_no_duplicado(app_ctx):
         "nombre": "User1",
         "apellidos": "Test",
         "correo": "user1@example.com",
-        "celular": "3001111111"
+        "telefono": "3001111111"
     })
     
     v2 = crear_vendedor({
         "nombre": "User2",
         "apellidos": "Test",
         "correo": "user2@example.com",
-        "celular": "3002222222"
+        "telefono": "3002222222"
     })
     
     with pytest.raises(ConflictError, match="Ya existe un vendedor registrado con ese correo"):
@@ -163,7 +151,7 @@ def test_listar_vendedores_con_filtros(app_ctx):
         "nombre": "V1",
         "apellidos": "Test",
         "correo": "v1@example.com",
-        "celular": "3001111111",
+        "telefono": "3001111111",
         "zona": "Norte",
         "estado": "activo"
     })
@@ -172,7 +160,7 @@ def test_listar_vendedores_con_filtros(app_ctx):
         "nombre": "V2",
         "apellidos": "Test",
         "correo": "v2@example.com",
-        "celular": "3002222222",
+        "telefono": "3002222222",
         "zona": "Centro",
         "estado": "activo"
     })
@@ -195,7 +183,7 @@ def test_auditoria_creacion(app_ctx):
         "nombre": "Audit",
         "apellidos": "Test",
         "correo": "audit@example.com",
-        "celular": "3009999999",
+        "telefono": "3009999999",
         "usuario_creacion": "admin@system.com"
     })
     

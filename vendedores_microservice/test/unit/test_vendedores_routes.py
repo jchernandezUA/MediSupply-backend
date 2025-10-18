@@ -11,7 +11,7 @@ def test_post_vendedor_exitoso(client):
         "nombre": "Juan",
         "apellidos": "Pérez",
         "correo": "juan.perez.route@example.com",
-        "celular": "3001234567"
+        "telefono": "3001234567"
     }
     
     response = client.post('/v1/vendedores', 
@@ -42,7 +42,7 @@ def test_post_vendedor_email_invalido(client):
         "nombre": "Test",
         "apellidos": "Test",
         "correo": "email-sin-arroba",
-        "celular": "3001234567"
+        "telefono": "3001234567"
     }
     
     response = client.post('/v1/vendedores',
@@ -59,7 +59,7 @@ def test_get_vendedor_existente(client):
         "nombre": "María",
         "apellidos": "García",
         "correo": "maria.garcia.route@example.com",
-        "celular": "3009876543"
+        "telefono": "3009876543"
     }
     response = client.post('/v1/vendedores',
                           data=json.dumps(payload),
@@ -89,7 +89,7 @@ def test_patch_vendedor(client):
         "nombre": "Pedro",
         "apellidos": "López",
         "correo": "pedro.lopez.route@example.com",
-        "celular": "3001111111"
+        "telefono": "3001111111"
     }
     response = client.post('/v1/vendedores',
                           data=json.dumps(payload),
@@ -116,7 +116,7 @@ def test_get_vendedores_lista(client):
             "nombre": f"Vendedor{i}",
             "apellidos": f"Test{i}",
             "correo": f"vendedor{i}.route@example.com",
-            "celular": f"300{i}{i}{i}{i}{i}{i}{i}"
+            "telefono": f"300{i}{i}{i}{i}{i}{i}{i}"
         }
         client.post('/v1/vendedores',
                    data=json.dumps(payload),
@@ -140,7 +140,7 @@ def test_get_vendedores_con_filtros(client):
         "nombre": "Vendedor",
         "apellidos": "Zona",
         "correo": "vendedor.zona.route@example.com",
-        "celular": "3008888888",
+        "telefono": "3008888888",
         "zona": "Oriente"
     }
     client.post('/v1/vendedores',

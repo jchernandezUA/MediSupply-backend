@@ -13,7 +13,6 @@ def _to_dict(v: Vendedor) -> Dict[str, Any]:
         "nombre": v.nombre,
         "apellidos": v.apellidos,
         "correo": v.correo,
-        "celular": v.celular,
         "telefono": v.telefono,
         "zona": v.zona,
         "estado": v.estado,
@@ -28,30 +27,25 @@ def crear_vendedor(payload: Dict[str, Any]) -> Dict[str, Any]:
     Crea un nuevo vendedor con validaciones completas según HU KAN-83.
     
     Validaciones:
-    - Campos obligatorios: nombre, apellidos, correo, celular
+    - Campos obligatorios: nombre, apellidos, correo, telefono
     - Formato de correo válido
     - Celular con mínimo 10 dígitos
     - Correo único (no duplicado)
     """
     # Validar campos obligatorios
-    require(payload, ["nombre", "apellidos", "correo", "celular"])
+    require(payload, ["nombre", "apellidos", "correo", "telefono"])
     
     # Validar formato de correo
     is_valid_email(payload["correo"])
     
     # Validar formato de celular (mínimo 10 dígitos)
-    is_valid_phone(payload["celular"], field_name="celular", min_length=10)
+    is_valid_phone(payload["telefono"], field_name="telefono", min_length=10)
     
     # Validar longitud de campos
     length_between(payload["nombre"], 1, 150, "nombre")
     length_between(payload["apellidos"], 1, 150, "apellidos")
     length_between(payload["correo"], 5, 255, "correo")
-    length_between(payload["celular"], 10, 20, "celular")
-    
-    # Validar teléfono si se proporciona
-    if payload.get("telefono"):
-        is_valid_phone(payload["telefono"], field_name="telefono", min_length=10)
-        length_between(payload["telefono"], 10, 20, "telefono")
+    length_between(payload["telefono"], 10, 20, "telefono")
     
     # Validar zona si se proporciona
     if payload.get("zona"):
@@ -68,7 +62,6 @@ def crear_vendedor(payload: Dict[str, Any]) -> Dict[str, Any]:
         nombre=payload["nombre"],
         apellidos=payload["apellidos"],
         correo=payload["correo"].lower().strip(),  # Normalizar correo
-        celular=payload["celular"],
         telefono=payload.get("telefono"),
         zona=payload.get("zona"),
         estado=payload.get("estado", "activo"),
@@ -80,8 +73,9 @@ def crear_vendedor(payload: Dict[str, Any]) -> Dict[str, Any]:
         db.session.commit()
     except IntegrityError as e:
         db.session.rollback()
+        print(f"Error de integridad al crear vendedor: {str(e)}")
         # Por si acaso hay algún problema de concurrencia
-        raise ConflictError("Ya existe un vendedor registrado con ese correo electrónico")
+        raise ConflictError(f"Ya existe un vendedor registrado con ese correo electrónico, error: {str(e)}")
     
     return _to_dict(vendedor)
 
