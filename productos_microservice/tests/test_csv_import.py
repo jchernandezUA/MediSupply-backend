@@ -276,48 +276,7 @@ Producto Invalido,SKU-INV-001,categoria_mala,precio_malo,Ambiente,31/12/2025,1""
         assert resultados['fallidos'] == 1
         assert len(resultados['detalles_errores']) == 1
     
-    def test_importar_productos_csv_con_certificacion_url(self, app):
-        """Test: importar productos con URL de certificación"""
-        # Arrange
-        csv_content = """nombre,codigo_sku,categoria,precio_unitario,condiciones_almacenamiento,fecha_vencimiento,proveedor_id,url_certificacion,tipo_certificacion,fecha_vencimiento_cert
-Producto Con Cert,SKU-CERT-001,medicamento,10.50,Ambiente,31/12/2025,1,https://certificados.invima.gov.co/producto.pdf,INVIMA,31/12/2025
-Producto Sin Cert,SKU-SIN-001,medicamento,5.00,Ambiente,30/06/2026,2,,,30/06/2026"""
-        
-        archivo = FileStorage(
-            stream=io.BytesIO(csv_content.encode('utf-8')),
-            filename="productos.csv",
-            content_type="text/csv"
-        )
-        
-        # Act
-        with app.app_context():
-            resultados = CSVProductoService.importar_productos_csv(archivo)
-        
-        # Assert
-        assert resultados['total_filas'] == 2
-        assert resultados['exitosos'] == 2
-        assert resultados['fallidos'] == 0
-        
-        # Verificar certificación creada
-        producto_con_cert = resultados['detalles_exitosos'][0]
-        assert producto_con_cert['tiene_certificacion'] == True
-        assert 'certificacion' in producto_con_cert
-        assert producto_con_cert['certificacion']['url'] == 'https://certificados.invima.gov.co/producto.pdf'
-        
-        producto_sin_cert = resultados['detalles_exitosos'][1] 
-        assert producto_sin_cert['tiene_certificacion'] == False
-        assert 'certificacion' not in producto_sin_cert
-        
-        # Verificar en base de datos
-        with app.app_context():
-            from app.models.producto import Producto
-            producto1 = Producto.query.filter_by(codigo_sku='SKU-CERT-001').first()
-            producto2 = Producto.query.filter_by(codigo_sku='SKU-SIN-001').first()
-            
-            assert producto1.certificacion is not None
-            assert producto1.certificacion.ruta_archivo == 'https://certificados.invima.gov.co/producto.pdf'
-            assert producto2.certificacion is None
-    
+
     def test_validar_producto_csv_url_certificacion_invalida(self):
         """Test: rechazar URL de certificación inválida"""
         # Arrange

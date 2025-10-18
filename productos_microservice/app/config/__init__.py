@@ -4,6 +4,6 @@ Paquete de configuración para AWS y general
 """
 
 from .aws_config import AWSConfig
-from .config import Config
+from .config import Config, TestingConfig
 
-__all__ = ['AWSConfig', 'Config']
+__all__ = ['AWSConfig', 'Config', 'TestingConfig']
