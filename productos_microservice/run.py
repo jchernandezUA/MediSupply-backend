@@ -8,7 +8,9 @@ if os.path.exists(".env"):
 
 from app import create_app
 
+# Crear la app a nivel de módulo para que Gunicorn pueda encontrarla
+app = create_app()
+
 if __name__ == "__main__":
-    app = create_app()
     debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"
     app.run(debug=debug_mode, host="0.0.0.0", port=os.getenv("PORT", 5008))  # Puerto 5008 para productos

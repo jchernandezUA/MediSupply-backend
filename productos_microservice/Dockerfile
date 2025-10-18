@@ -4,6 +4,9 @@ FROM python:3.10-slim
 # Establecer directorio de trabajo
 WORKDIR /app
 
+# Instalar curl para health checks
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 # Copiar archivos de dependencias
 COPY requirements.txt .
 
@@ -23,5 +26,5 @@ EXPOSE 5008
 ENV PORT=5008
 ENV PYTHONUNBUFFERED=1
 
-# Comando para ejecutar la aplicación
-CMD ["python", "run.py"]
+# Comando para ejecutar la aplicación con Gunicorn
+CMD ["gunicorn", "--bind", "0.0.0.0:5008", "--workers", "4", "--timeout", "120", "run:app"]

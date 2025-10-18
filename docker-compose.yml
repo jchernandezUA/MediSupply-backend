@@ -1,0 +1,211 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: medisupply-db
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-medisupply_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-medisupply_password}
+      - POSTGRES_DB=${POSTGRES_DB:-medisupply}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - medisupply-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-medisupply_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  auth-usuario:
+    build:
+      context: ./auth-usuario
+      dockerfile: Dockerfile
+    container_name: medisupply-auth
+    ports:
+      - "5001:5001"
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=production
+      - PORT=5001
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=${POSTGRES_DB:-medisupply}
+      - DB_USER=${POSTGRES_USER:-medisupply_user}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-medisupply_password}
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-jwt-secret-key-change-in-production}
+      - DEBUG=False
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - medisupply-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  mediador-web:
+    build:
+      context: ./mediador-web
+      dockerfile: Dockerfile
+    container_name: medisupply-mediador
+    ports:
+      - "5002:5002"
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=production
+      - PORT=5002
+      - AUTH_URL=http://auth-usuario:5001
+      - PROVEEDORES_URL=http://proveedores:5006
+      - VENDEDORES_URL=http://vendedores:5007
+      - DEBUG=False
+    depends_on:
+      auth-usuario:
+        condition: service_healthy
+      proveedores:
+        condition: service_healthy
+    networks:
+      - medisupply-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  proveedores:
+    build:
+      context: ./proveedores_microservice
+      dockerfile: Dockerfile
+    container_name: medisupply-proveedores
+    ports:
+      - "5006:5006"
+    environment:
+      - FLASK_APP=run.py
+      - FLASK_ENV=production
+      - FLASK_DEBUG=False
+      - PORT=5006
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-medisupply_user}:${POSTGRES_PASSWORD:-medisupply_password}@db:5432/${POSTGRES_DB:-medisupply}
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
+    volumes:
+      - proveedores_uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - medisupply-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5006/api/proveedores/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  vendedores:
+    build:
+      context: ./vendedores_microservice
+      dockerfile: Dockerfile
+    container_name: medisupply-vendedores
+    ports:
+      - "5007:5007"
+    environment:
+      - FLASK_APP=app:create_app
+      - FLASK_ENV=production
+      - FLASK_DEBUG=False
+      - SERVICE_PORT=5007
+      - DB_URL=postgresql+psycopg2://${POSTGRES_USER:-medisupply_user}:${POSTGRES_PASSWORD:-medisupply_password}@db:5432/${POSTGRES_DB:-medisupply}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - medisupply-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5007/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  productos:
+    build:
+      context: ./productos_microservice
+      dockerfile: Dockerfile
+    container_name: medisupply-productos
+    ports:
+      - "5008:5008"
+    environment:
+      - FLASK_APP=run.py
+      - FLASK_ENV=production
+      - FLASK_DEBUG=False
+      - PORT=5008
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-medisupply_user}:${POSTGRES_PASSWORD:-medisupply_password}@db:5432/${POSTGRES_DB:-medisupply}
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
+    volumes:
+      - productos_uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - medisupply-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5008/api/productos/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  producto-inventario-web:
+    build:
+      context: ./producto-inventario-web
+      dockerfile: Dockerfile
+    container_name: medisupply-producto-inventario
+    ports:
+      - "5003:5003"
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=production
+      - PORT=5003
+      - AUTH_URL=http://auth-usuario:5001
+      - PRODUCTO_URL=http://productos:5008
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-jwt-secret-key-change-in-production}
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
+      - DEBUG=False
+    depends_on:
+      auth-usuario:
+        condition: service_healthy
+      productos:
+        condition: service_healthy
+    networks:
+      - medisupply-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  medisupply-network:
+    driver: bridge
+    name: medisupply-network
+
+volumes:
+  postgres_data:
+    name: medisupply-postgres-data
+  proveedores_uploads:
+    name: medisupply-proveedores-uploads
+  productos_uploads:
+    name: medisupply-productos-uploads
+
