@@ -5,14 +5,14 @@ on:
     branches:
       - main
     paths:
-      - 'mediador-web/**'
+      - 'proveedores_microservice/**'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
       AWS_ACCOUNT_ID_JOSE: ${{ secrets.AWS_ACCOUNT_ID_JOSE }}
-      ECR_REPO: mediador-web
+      ECR_REPO: proveedores
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -28,9 +28,9 @@ jobs:
         run: |
           aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID_JOSE.dkr.ecr.us-east-2.amazonaws.com
 
-      - name: Build and push Docker image (mediador-web)
+      - name: Build and push Docker image (proveedores)
         run: |
-          docker build -t $AWS_ACCOUNT_ID_JOSE.dkr.ecr.us-east-2.amazonaws.com/$ECR_REPO:latest ./mediador-web
+          docker build -t $AWS_ACCOUNT_ID_JOSE.dkr.ecr.us-east-2.amazonaws.com/$ECR_REPO:latest ./proveedores_microservice
           docker push $AWS_ACCOUNT_ID_JOSE.dkr.ecr.us-east-2.amazonaws.com/$ECR_REPO:latest
 
       - name: Update kubeconfig
@@ -39,9 +39,9 @@ jobs:
 
       - name: Deploy to EKS
         run: |
-          kubectl apply -f kubernetes/mediador-web/deployment.yaml
-          kubectl apply -f kubernetes/mediador-web/service.yaml
+          kubectl apply -f kubernetes/proveedores/deployment.yaml
+          kubectl apply -f kubernetes/proveedores/service.yaml
 
-      - name: Restart mediador-web deployment
+      - name: Restart proveedores deployment
         run: |
-          kubectl rollout restart deployment mediador-web-deployment -n medisupply
+          kubectl rollout restart deployment proveedores-deployment -n medisupply
