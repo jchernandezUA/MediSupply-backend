@@ -33,11 +33,11 @@ jobs:
         git merge --squash develop
         git commit -m "Squash merge develop para release ${{ github.event.inputs.version }}"
 
-    - name: Push master y tag
+    - name: Push main y tag
       env:
         VERSION: ${{ github.event.inputs.version }}
       run: |
-        git push origin master
+        git push origin main
         git tag -a "v$VERSION" -m "Release $VERSION"
         git push origin "v$VERSION"
 
