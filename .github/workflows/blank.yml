@@ -39,12 +39,13 @@ jobs:
           git add VERSION
           git commit -m "chore: bump version to ${{ github.event.inputs.version }}"
 
-      - name: Merge develop a main con squash
+
+      - name: Forzar main igual a develop (reset hard)
         run: |
           git fetch origin
           git checkout main
-          git merge --squash develop --allow-unrelated-histories
-          git commit -m "Squash merge develop para release ${{ github.event.inputs.version }}"
+          git reset --hard develop
+          git push origin main --force
 
       - name: Push main y tag
         env:
