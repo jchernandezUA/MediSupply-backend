@@ -8,7 +8,14 @@ on:
         required: true
         default: '1.0.0'
   workflow_run:
-    workflows: ["Deploy to AWS EKS", "Test y cobertura para mediador-web"]  # Cambia por el nombre exacto de tu workflow de tests o build
+    workflows:
+      - "Deploy to AWS EKS"
+      - "Test y cobertura para mediador-web"
+      - "Test y cobertura para auth-usuario"
+      - "Test y cobertura para productos_microservice"
+      - "Test y cobertura para proveedores_microservice"
+      - "Test y cobertura para producto-inventario-web"
+      - "Test y cobertura para vendedores_microservice"
     types:
       - completed
 
