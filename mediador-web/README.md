@@ -12,6 +12,7 @@ Backend for Frontend (BFF) desarrollado con Python y Flask que actúa como media
 - ✅ Producción lista con Gunicorn
 - ✅ Usuario no-root para seguridad
 
+
 ## Arquitectura
 
 ```
