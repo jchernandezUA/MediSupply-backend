@@ -2,6 +2,7 @@ import os
 from urllib import response
 import requests
 from flask import current_app
+from flask import request
 import re
 
 class ProveedorServiceError(Exception):
@@ -84,12 +85,13 @@ def crear_proveedor_externo(datos_proveedor, files, user_id):
     
 
 # Consulta de proveedores desde el microservicio externo
-def consultar_proveedores_externo():
+def consultar_proveedores_externo(params=None):
     proveedores_url = os.environ.get('PROVEEDORES_URL', 'http://localhost:5006')
     try:
-        response = requests.get(f"{proveedores_url}/api/proveedores")
+        response = requests.get(f"{proveedores_url}/api/proveedores", params=params)
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
-        current_app.logger.error(f"Error consultando proveedores: {str(e)}")
+        # Usar print para evitar dependencia de contexto Flask en tests
+        print(f"Error consultando proveedores: {str(e)}")
         raise ProveedorServiceError({'error': 'No se pudo consultar proveedores'}, 500)
