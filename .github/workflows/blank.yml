@@ -1,4 +1,5 @@
 name: Release Manual
+
 on:
   workflow_dispatch:
     inputs:
@@ -6,47 +7,52 @@ on:
         description: 'Versión a publicar (ej: 1.0.1)'
         required: true
         default: '1.0.0'
+  workflow_run:
+    workflows: ["Deploy to AWS EKS", "Test y cobertura para mediador-web"]  # Cambia por el nombre exacto de tu workflow de tests o build
+    types:
+      - completed
 
 jobs:
   release:
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-      with:
-        ref: develop
+      - uses: actions/checkout@v3
+        with:
+          ref: develop
 
-    - name: Configurar Git
-      run: |
-        git config user.name "GitHub Actions"
-        git config user.email "actions@github.com"
+      - name: Configurar Git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
 
-    - name: Actualizar versión
-      run: |
-        echo "${{ github.event.inputs.version }}" > VERSION
-        git add VERSION
-        git commit -m "chore: bump version to ${{ github.event.inputs.version }}"
+      - name: Actualizar versión
+        run: |
+          echo "${{ github.event.inputs.version }}" > VERSION
+          git add VERSION
+          git commit -m "chore: bump version to ${{ github.event.inputs.version }}"
 
-    - name: Merge develop a main con squash
-      run: |
-        git fetch origin
-        git checkout main
-        git merge --squash develop --allow-unrelated-histories        
-        git commit -m "Squash merge develop para release ${{ github.event.inputs.version }}"
+      - name: Merge develop a main con squash
+        run: |
+          git fetch origin
+          git checkout main
+          git merge --squash develop --allow-unrelated-histories
+          git commit -m "Squash merge develop para release ${{ github.event.inputs.version }}"
 
-    - name: Push main y tag
-      env:
-        VERSION: ${{ github.event.inputs.version }}
-      run: |
-        git push origin main
-        git tag -a "v$VERSION" -m "Release $VERSION"
-        git push origin "v$VERSION"
+      - name: Push main y tag
+        env:
+          VERSION: ${{ github.event.inputs.version }}
+        run: |
+          git push origin main
+          git tag -a "v$VERSION" -m "Release $VERSION"
+          git push origin "v$VERSION"
 
-    - name: Crear Release en GitHub
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: "v${{ github.event.inputs.version }}"
-        release_name: "Release v${{ github.event.inputs.version }}"
-        draft: false
-        prerelease: false
+      - name: Crear Release en GitHub
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: "v${{ github.event.inputs.version }}"
+          release_name: "Release v${{ github.event.inputs.version }}"
+          draft: false
+          prerelease: false
