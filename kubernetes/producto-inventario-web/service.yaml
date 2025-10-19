@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: mediador-web-service
+  name: producto-inventario-web-service
   namespace: medisupply
 spec:
   type: ClusterIP
   selector:
-    app: mediador-web
+    app: producto-inventario-web
   ports:
     - protocol: TCP
       port: 80
-      targetPort: 5002
+      targetPort: 5003

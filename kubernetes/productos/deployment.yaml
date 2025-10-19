@@ -20,7 +20,7 @@ spec:
         image: 012146976167.dkr.ecr.us-east-2.amazonaws.com/productos:latest
         ports:
         - containerPort: 5008
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         command: ["/bin/sh", "-c"]
         args:
         - |

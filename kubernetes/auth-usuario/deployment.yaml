@@ -17,10 +17,10 @@ spec:
     spec:
       containers:
       - name: auth-usuario
-        image: 012146976167.dkr.ecr.us-east-2.amazonaws.com/auth-usuario:v2-amd64
+        image: 012146976167.dkr.ecr.us-east-2.amazonaws.com/auth-usuario:latest
         ports:
         - containerPort: 5001
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         env:
         - name: DB_HOST
           value: "postgres-service"

@@ -1,25 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mediador-web-deployment
+  name: producto-inventario-web-deployment
   namespace: medisupply
   labels:
-    app: mediador-web
+    app: producto-inventario-web
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: mediador-web
+      app: producto-inventario-web
   template:
     metadata:
       labels:
-        app: mediador-web
+        app: producto-inventario-web
     spec:
       containers:
-      - name: mediador-web
-        image: 012146976167.dkr.ecr.us-east-2.amazonaws.com/mediador-web:latest
+      - name: producto-inventario-web
+        image: 012146976167.dkr.ecr.us-east-2.amazonaws.com/producto-inventario-web:latest
         ports:
-        - containerPort: 5002
+        - containerPort: 5003
         envFrom:
         - configMapRef:
             name: mediador-web-configmap

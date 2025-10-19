@@ -1,9 +1,9 @@
 name: Deploy to AWS EKS
 
 on:
-  pull_request:
+  push:
     branches:
-      - develop
+      - main
     paths:
       - 'mediador-web/**'
 
@@ -12,7 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       AWS_ACCOUNT_ID_JOSE: ${{ secrets.AWS_ACCOUNT_ID_JOSE }}
-      ECR_REPO: mediador-web
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -30,7 +29,7 @@ jobs:
 
       - name: Build and push Docker image (mediador-web)
         run: |
-          docker build -t mediador-web .
+          docker build -t $AWS_ACCOUNT_ID_JOSE.dkr.ecr.us-east-2.amazonaws.com/mediador-web:latest ./mediador-web
           docker tag mediador-web:latest $AWS_ACCOUNT_ID_JOSE.dkr.ecr.us-east-2.amazonaws.com/mediador-web:latest
           docker push $AWS_ACCOUNT_ID_JOSE.dkr.ecr.us-east-2.amazonaws.com/mediador-web:latest
 

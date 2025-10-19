@@ -38,7 +38,7 @@ def crear_producto():
         # Capturar cualquier otro error no esperado
         return jsonify({
             'error': 'Error interno del servidor',
-            'codigo': 'ERROR_INESPERADO'
+            'codigo': 'ERROR_INESPERADO '+str(e)
         }), 500
 
 
