@@ -43,7 +43,7 @@ def crear_proveedor():
 @proveedor_bp.route('/proveedor', methods=['GET'])
 def consultar_proveedores():
     try:
-        proveedores = consultar_proveedores_externo()
+        proveedores = consultar_proveedores_externo(request.args)
         return jsonify(proveedores), 200
     except ProveedorServiceError as e:
         # Retornar contenido y código del error personalizado
